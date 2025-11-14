@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
 import { initDatabase } from './config/database';
 import authRoutes from './routes/authRoutes';
 import postRoutes from './routes/postRoutes';
@@ -9,12 +8,7 @@ import postRoutes from './routes/postRoutes';
 // Load environment variables
 dotenv.config();
 
-// Initialize database
-const dataDir = path.join(__dirname, '../data');
-const fs = require('fs');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
+// Initialize database (directory is created automatically in database.ts)
 initDatabase();
 
 const app = express();

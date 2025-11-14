@@ -1,15 +1,7 @@
 import { initDatabase } from '../config/database';
 import { UserModel } from '../models/User';
-import path from 'path';
-import fs from 'fs';
 
-// Create data directory if it doesn't exist
-const dataDir = path.join(__dirname, '../../data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-// Initialize database
+// Initialize database (directory is created automatically in database.ts)
 initDatabase();
 
 // Create default admin user if it doesn't exist
