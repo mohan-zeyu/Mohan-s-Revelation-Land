@@ -14,7 +14,8 @@
     <div class="nav-content">
       <a href="/" class="logo">
         <span class="logo-title">Revelation Land</span>
-        <span class="tagline">by Mohan</span>
+        <span class="divider" aria-hidden="true">·</span>
+        <span class="tagline">Mohan</span>
       </a>
 
       <ul class="nav-links">
@@ -56,54 +57,64 @@
     z-index: 100;
   }
 
+  :global(header .container) {
+    padding: 0 1.25rem;
+  }
+
   nav {
-    min-height: 50px;
+    min-height: 46px;
   }
 
   .nav-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 50px;
-    gap: 1.5rem;
+    height: 46px;
+    gap: 1.25rem;
   }
 
   .logo {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     line-height: 1;
   }
 
   .logo-title {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     color: var(--heading-color);
+    text-transform: uppercase;
+  }
+
+  .divider {
+    font-size: 1.1rem;
+    color: var(--muted-text);
   }
 
   .tagline {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--muted-text);
-    letter-spacing: 0.2em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    margin-top: 0.3rem;
   }
 
   .nav-links {
     display: flex;
-    gap: 1.5rem;
+    gap: 1.25rem;
     list-style: none;
     align-items: center;
     margin: 0;
   }
 
   .nav-links a {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    padding-bottom: 0.2rem;
+    padding-bottom: 0.15rem;
     border-bottom: 2px solid transparent;
     color: var(--muted-text);
     transition: border-color 0.2s ease, color 0.2s ease;

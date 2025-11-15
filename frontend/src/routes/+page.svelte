@@ -3,17 +3,17 @@
 
   interface RainDrop {
     id: number;
-    left: number;
+    x: number;
     delay: number;
     duration: number;
     length: number;
-    angle: number;
     opacity: number;
+    drift: number;
+    width: number;
   }
 
   function createRandom(seed: number) {
     return function () {
-      // Mulberry32 PRNG for deterministic output
       seed |= 0;
       seed = (seed + 0x6d2b79f5) | 0;
       let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
@@ -22,16 +22,17 @@
     };
   }
 
-  const dropCount = 420;
-  const random = createRandom(20240427);
+  const dropCount = 500;
+  const random = createRandom(20240502);
   const drops: RainDrop[] = Array.from({ length: dropCount }, (_, index) => ({
     id: index,
-    left: random() * 120,
-    delay: random() * -8,
-    duration: 4 + random() * 7,
-    length: 40 + random() * 90,
-    angle: 85 + random() * 12,
-    opacity: 0.25 + random() * 0.55
+    x: random() * 120,
+    delay: random() * -12,
+    duration: 1.5 + random() * 2.5,
+    length: 12 + random() * 22,
+    opacity: 0.35 + random() * 0.45,
+    drift: -3 + random() * 6,
+    width: 1 + random() * 1.4
   }));
 
   onMount(() => {
@@ -50,105 +51,100 @@
   />
 </svelte:head>
 
-<section class="hero-shell">
+<section class="hero">
   <div class="rain" aria-hidden="true">
     <div class="left"></div>
     <div class="left center"></div>
     <div class="right center"></div>
     <div class="right"></div>
     {#each drops as drop (drop.id)}
-      <div
+      <span
         class="drop"
-        style={`--left:${drop.left}vw; --delay:${drop.delay}s; --duration:${drop.duration}s; --length:${drop.length}px; --angle:${drop.angle}deg; --opacity:${drop.opacity};`}
+        style={`--x:${drop.x}vw; --delay:${drop.delay}s; --duration:${drop.duration}s; --length:${drop.length}vh; --opacity:${drop.opacity}; --drift:${drop.drift}vw; --width:${drop.width}px;`}
       />
     {/each}
   </div>
 
-  <div class="hero container">
-    <div class="hero-content">
-      <p class="eyebrow">Welcome to Revelation Land</p>
-      <h1>Thoughtful notes and discoveries from Mohan</h1>
+  <div class="hero-inner container">
+    <div class="hero-text">
+      <p class="eyebrow">Revelation Land</p>
+      <h1>Mohan's notebook for quiet breakthroughs</h1>
       <p class="tagline">
-        A calm space for dynamics, study notes, and daily findings—documented in
-        Markdown and shared with intention.
+        Dynamics, study notes, and daily findings recorded in Markdown. Slow down, read with intention,
+        and follow the rain.
       </p>
       <div class="hero-actions">
-        <a class="primary-link" href="/recent">Read recent posts</a>
-        <a class="secondary-link" href="/study-notes">Explore study notes</a>
+        <a class="primary-link" href="/recent">Recent posts</a>
+        <a class="secondary-link" href="/dynamics">Browse dynamics</a>
       </div>
     </div>
   </div>
 </section>
 
-<div class="container">
-  <section class="home-panels">
-    <article class="panel">
-      <h2>Start here</h2>
-      <p>
-        Revelation Land is a living archive of Mohan's reflections. Posts are written in Markdown, so
-        every article stays clean, structured, and easy to maintain.
-      </p>
-      <p>
-        Curious about the writing cadence? Visit the <a href="/recent">recent posts</a> feed for the
-        latest additions.
-      </p>
-    </article>
-    <article class="panel">
-      <h2>Browse sections</h2>
-      <ul class="links">
-        <li><a href="/dynamics">Dynamics</a> — personal updates and evolving thoughts.</li>
-        <li><a href="/study-notes">Study Notes</a> — distilled learnings and references.</li>
-        <li><a href="/daily-findings">Daily Findings</a> — small discoveries worth keeping.</li>
-      </ul>
-    </article>
-    <article class="panel">
-      <h2>Stay connected</h2>
-      <p>
-        Administrators can log in to curate new posts, set concise abstracts, and publish Markdown
-        stories that render beautifully—complete with automatic tables of contents.
-      </p>
-      <a class="secondary-link subtle" href="/admin">Go to admin dashboard</a>
-    </article>
-  </section>
-</div>
+<section class="container intro">
+  <div class="intro-text">
+    <p>
+      Revelation Land grows entry by entry. Every post includes a clear abstract, detailed body written in
+      Markdown, and an automatically generated table of contents for fast orientation.
+    </p>
+    <p>
+      Use the navigation above to jump directly to Dynamics, Study Notes, Daily Findings, or the latest
+      posts. Administrators can sign in to publish new insights at any time.
+    </p>
+  </div>
+
+  <div class="intro-links" aria-label="Sections">
+    <h2>Where to next</h2>
+    <ul>
+      <li><a href="/study-notes">Study Notes</a> · condensed references from Mohan's research.</li>
+      <li><a href="/daily-findings">Daily Findings</a> · fleeting discoveries worth keeping.</li>
+      <li><a href="/admin">Admin Dashboard</a> · manage posts, abstracts, and categories.</li>
+    </ul>
+  </div>
+</section>
 
 <style>
   :global(body.home-page) {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    background: linear-gradient(180deg, #343a40, #495057 65%, #212529 100%);
+    background: linear-gradient(180deg, #07131c, #305472 60%, #0f1f2b 100%);
     color: var(--surface-color);
+    overflow-x: hidden;
   }
 
-  .hero-shell {
+  :global(body.home-page)::before,
+  :global(body.home-page)::after {
+    content: "";
+    display: none;
+  }
+
+  .hero {
     position: relative;
-    min-height: 60vh;
+    min-height: 80vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4rem 0;
     overflow: hidden;
+    padding: 4rem 0;
   }
 
   .rain {
     position: absolute;
-    width: 140vw;
-    height: 110%;
-    left: -20vw;
-    top: -5%;
-    pointer-events: none;
+    inset: 0;
+    width: 120vw;
+    left: -10vw;
     z-index: 0;
+    --speed: 1;
   }
 
   .rain .left,
-  .rain .left.center,
   .rain .right,
+  .rain .left.center,
   .rain .right.center {
     position: absolute;
     width: 20vw;
     height: 100%;
     top: 0;
+    pointer-events: auto;
+    cursor: pointer;
   }
 
   .rain .left {
@@ -167,70 +163,89 @@
     right: 10vw;
   }
 
+  .rain .left:hover ~ .drop {
+    --wind: -3vw;
+  }
+
+  .rain .left.center:hover ~ .drop {
+    --wind: -1.5vw;
+  }
+
+  .rain .right.center:hover ~ .drop {
+    --wind: 1.5vw;
+  }
+
+  .rain .right:hover ~ .drop {
+    --wind: 3vw;
+  }
+
+  .rain:active {
+    --speed: 1.6;
+  }
+
   .drop {
     position: absolute;
-    top: -120px;
-    left: var(--left);
-    width: 2px;
+    top: -15vh;
+    left: var(--x);
+    width: var(--width);
     height: var(--length);
-    background: linear-gradient(180deg, rgba(233, 236, 239, 0), rgba(233, 236, 239, 0.85));
+    background: linear-gradient(180deg, rgba(222, 226, 230, 0), rgba(173, 197, 227, 0.55) 55%, rgba(173, 197, 227, 0.9));
     opacity: var(--opacity);
-    animation: fall var(--duration) linear infinite;
-    animation-delay: var(--delay);
-    transform-origin: top;
-    filter: blur(0.4px);
+    animation: fall calc(var(--duration) / var(--speed)) linear var(--delay) infinite;
+    will-change: transform;
+    border-radius: 999px;
+    filter: drop-shadow(0 14px 18px rgba(15, 31, 43, 0.35));
+    pointer-events: none;
+    --wind: 0vw;
   }
 
   @keyframes fall {
-    0% {
-      transform: rotate(var(--angle)) translateY(0);
+    from {
+      transform: translate3d(0, -15vh, 0);
     }
-    100% {
-      transform: rotate(var(--angle)) translateY(120vh);
+    to {
+      transform: translate3d(calc(var(--drift) + var(--wind)), 110vh, 0);
     }
   }
 
-  .hero {
+  .hero-inner {
     position: relative;
     z-index: 1;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
   }
 
-  .hero-content {
+  .hero-text {
     max-width: 520px;
-    background: rgba(233, 236, 239, 0.82);
-    border-radius: 18px;
-    border: 1px solid rgba(206, 212, 218, 0.8);
-    padding: 3rem;
-    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.18);
-    color: var(--text-color);
-    backdrop-filter: blur(10px);
+    color: #f8f9fa;
   }
 
   .eyebrow {
-    margin: 0 0 0.75rem 0;
     text-transform: uppercase;
-    letter-spacing: 0.3em;
-    font-size: 0.8rem;
-    color: var(--muted-text);
+    letter-spacing: 0.32em;
+    font-size: 0.78rem;
+    color: rgba(233, 236, 239, 0.68);
+    margin-bottom: 0.9rem;
   }
 
   h1 {
-    margin-bottom: 1.5rem;
+    margin: 0 0 1.6rem;
     font-size: 2.6rem;
-    color: var(--heading-color);
+    color: #f8f9fa;
+    text-shadow: 0 10px 18px rgba(7, 19, 28, 0.5);
   }
 
   .tagline {
-    margin-bottom: 2.5rem;
-    font-size: 1.05rem;
-    color: var(--muted-text);
-    line-height: 1.8;
+    margin-bottom: 2.2rem;
+    color: rgba(233, 236, 239, 0.85);
+    line-height: 1.85;
   }
 
   .hero-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 0.85rem;
   }
 
   .primary-link,
@@ -238,99 +253,80 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.65rem 1.4rem;
+    padding: 0.55rem 1.3rem;
     border-radius: 999px;
     font-weight: 600;
-    letter-spacing: 0.05em;
     text-transform: uppercase;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
   }
 
   .primary-link {
-    background: var(--primary-color);
-    color: var(--surface-color);
+    background: rgba(233, 236, 239, 0.92);
+    color: #212529;
   }
 
   .primary-link:hover {
-    background: var(--secondary-color);
+    background: rgba(233, 236, 239, 1);
   }
 
   .secondary-link {
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(206, 212, 218, 0.8);
-    color: var(--heading-color);
+    background: rgba(233, 236, 239, 0.18);
+    border: 1px solid rgba(233, 236, 239, 0.45);
+    color: rgba(233, 236, 239, 0.92);
   }
 
   .secondary-link:hover {
-    background: rgba(233, 236, 239, 0.8);
-    color: var(--text-color);
+    background: rgba(233, 236, 239, 0.3);
   }
 
-  .secondary-link.subtle {
-    margin-top: 1rem;
-    padding-inline: 1.1rem;
-  }
-
-  .home-panels {
+  .intro {
     display: grid;
-    gap: 1.5rem;
+    gap: 2.4rem;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    margin-top: -3rem;
+    align-items: start;
+    padding: 3.5rem 0 4rem;
   }
 
-  .panel {
-    background: var(--surface-elevated);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    padding: 2rem;
-    box-shadow: var(--shadow);
-    color: var(--text-color);
-    backdrop-filter: blur(6px);
+  .intro-text p {
+    color: var(--muted-text);
+    line-height: 1.85;
   }
 
-  .panel h2 {
+  .intro-links h2 {
     margin-top: 0;
     margin-bottom: 1rem;
+    font-size: 1.25rem;
+    color: var(--heading-color);
   }
 
-  .panel p {
-    color: var(--muted-text);
-    line-height: 1.7;
-  }
-
-  .links {
+  .intro-links ul {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
-    gap: 0.75rem;
+    gap: 0.85rem;
     color: var(--muted-text);
   }
 
-  .links a {
+  .intro-links a {
     color: var(--heading-color);
+    text-decoration: underline;
   }
 
   @media (max-width: 768px) {
-    .hero-shell {
-      padding: 3rem 0 4rem;
-    }
-
-    .hero-content {
-      padding: 2.25rem;
+    .hero {
+      min-height: 540px;
+      padding: 3rem 0;
     }
 
     h1 {
       font-size: 2.2rem;
     }
 
-    .hero-actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .home-panels {
-      margin-top: -2rem;
+    .intro {
+      grid-template-columns: 1fr;
+      padding: 2.5rem 0 3rem;
     }
   }
 </style>
