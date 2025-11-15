@@ -1,177 +1,349 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { api } from '$lib/api/client';
-  import PostCard from '$lib/components/PostCard.svelte';
 
-  interface Post {
+  interface RainDrop {
     id: number;
-    title: string;
-    content: string;
-    category: string;
-    created_at: string;
+    x: number;
+    delay: number;
+    duration: number;
+    thickness: number;
+    opacity: number;
+    offset: number;
   }
 
-  let recentPosts: Post[] = [];
-  let loading = true;
-  let error = '';
+  function createRandom(seed: number) {
+    return function () {
+      seed |= 0;
+      seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
 
-  onMount(async () => {
-    try {
-      const posts = await api.getPosts();
-      recentPosts = posts.slice(0, 6); // Show only 6 most recent posts
-      loading = false;
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to load posts';
-      loading = false;
-    }
+  const dropCount = 500;
+  const random = createRandom(20240502);
+  const drops: RainDrop[] = Array.from({ length: dropCount }, (_, index) => ({
+    id: index,
+    x: random() * 120,
+    delay: random() * -8,
+    duration: 3 + random() * 8,
+    thickness: 0.5 + random() * 0.7,
+    opacity: 0.25 + random() * 0.55,
+    offset: -6 + random() * 12
+  }));
+
+  onMount(() => {
+    document.body.classList.add('home-page');
+    return () => {
+      document.body.classList.remove('home-page');
+    };
   });
 </script>
 
 <svelte:head>
-  <title>Home - My Personal Blog</title>
+  <title>Revelation Land · Home</title>
+  <meta
+    name="description"
+    content="Revelation Land is Mohan's quiet corner for reflections, study notes, and daily findings."
+  />
 </svelte:head>
 
-<div class="container">
-  <section class="hero">
-    <h1>Welcome to My Personal Blog! 🎉</h1>
-    <p class="tagline">
-      A place where I share my dynamics, study notes, and interesting findings from daily life.
-    </p>
-  </section>
+<section class="hero">
+  <div class="rain" aria-hidden="true">
+    <div class="left"></div>
+    <div class="left center"></div>
+    <div class="right center"></div>
+    <div class="right"></div>
+    {#each drops as drop (drop.id)}
+      <div
+        class="drop"
+        style={`--x:${drop.x}vw; --delay:${drop.delay}s; --duration:${drop.duration}s; --thickness:${drop.thickness}vmin; --opacity:${drop.opacity}; --offset:${drop.offset}deg;`}
+      />
+    {/each}
+  </div>
 
-  <section class="categories">
-    <div class="category-grid">
-      <a href="/dynamics" class="category-card dynamics">
-        <h3>📱 Dynamics</h3>
-        <p>Personal updates and what's happening in my life</p>
-      </a>
-
-      <a href="/study-notes" class="category-card study-notes">
-        <h3>📚 Study Notes</h3>
-        <p>Learning materials and knowledge I've gathered</p>
-      </a>
-
-      <a href="/daily-findings" class="category-card daily-findings">
-        <h3>🔍 Daily Findings</h3>
-        <p>Interesting discoveries and observations from everyday life</p>
-      </a>
-    </div>
-  </section>
-
-  <section class="recent-posts">
-    <h2>Recent Posts</h2>
-
-    {#if loading}
-      <p>Loading posts...</p>
-    {:else if error}
-      <div class="error">{error}</div>
-    {:else if recentPosts.length === 0}
-      <p class="no-posts">No posts yet. Check back later!</p>
-    {:else}
-      <div class="posts-grid">
-        {#each recentPosts as post (post.id)}
-          <PostCard {post} />
-        {/each}
+  <div class="hero-inner container">
+    <div class="hero-text">
+      <p class="eyebrow">Revelation Land</p>
+      <h1>Mohan's notebook for quiet breakthroughs</h1>
+      <p class="tagline">
+        Dynamics, study notes, and daily findings recorded in Markdown. Slow down, read with intention,
+        and follow the rain.
+      </p>
+      <div class="hero-actions">
+        <a class="primary-link" href="/recent">Recent posts</a>
+        <a class="secondary-link" href="/dynamics">Browse dynamics</a>
       </div>
-    {/if}
-  </section>
-</div>
+    </div>
+  </div>
+</section>
+
+<section class="container intro">
+  <div class="intro-text">
+    <p>
+      Revelation Land grows entry by entry. Every post includes a clear abstract, detailed body written in
+      Markdown, and an automatically generated table of contents for fast orientation.
+    </p>
+    <p>
+      Use the navigation above to jump directly to Dynamics, Study Notes, Daily Findings, or the latest
+      posts. Administrators can sign in to publish new insights at any time.
+    </p>
+  </div>
+
+  <div class="intro-links" aria-label="Sections">
+    <h2>Where to next</h2>
+    <ul>
+      <li><a href="/study-notes">Study Notes</a> · condensed references from Mohan's research.</li>
+      <li><a href="/daily-findings">Daily Findings</a> · fleeting discoveries worth keeping.</li>
+      <li><a href="/admin">Admin Dashboard</a> · manage posts, abstracts, and categories.</li>
+    </ul>
+  </div>
+</section>
 
 <style>
-  .hero {
-    text-align: center;
-    padding: 3rem 0;
-    margin-bottom: 3rem;
+  @property --angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 91deg;
   }
 
-  .hero h1 {
-    font-size: 3rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
+  :global(body.home-page) {
+    background: linear-gradient(180deg, #07131c, #305472 60%, #0f1f2b 100%);
+    color: var(--surface-color);
+    overflow-x: hidden;
+  }
+
+  :global(body.home-page)::before,
+  :global(body.home-page)::after {
+    content: "";
+    display: none;
+  }
+
+  .hero {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .rain {
+    position: absolute;
+    width: 120vw;
+    height: 100vh;
+    left: -10vw;
+    top: 0;
+    cursor: pointer;
+    z-index: 0;
+    --angle: 91deg;
+  }
+
+  .rain .left,
+  .rain .right,
+  .rain .left.center,
+  .rain .right.center {
+    position: absolute;
+    width: 20vw;
+    height: 100vh;
+    top: 0;
+    box-sizing: border-box;
+    z-index: 2;
+  }
+
+  .rain .left {
+    left: 10vw;
+  }
+
+  .rain .left.center {
+    left: 30vw;
+  }
+
+  .rain .right.center {
+    right: 30vw;
+  }
+
+  .rain .right {
+    right: 10vw;
+  }
+
+  .rain .left:hover ~ .drop {
+    --angle: 105deg;
+  }
+
+  .rain .left.center:hover ~ .drop {
+    --angle: 95deg;
+  }
+
+  .rain .right.center:hover ~ .drop {
+    --angle: 85deg;
+  }
+
+  .rain .right:hover ~ .drop {
+    --angle: 75deg;
+  }
+
+  .rain:active {
+    animation: lightning 0.12s linear 0s 2, lightning 0.18s ease-out 0.25s 1;
+  }
+
+  @keyframes lightning {
+    50% {
+      background: radial-gradient(circle at calc(50% - 10vw) -15%, #ffffff33, transparent 22%),
+        linear-gradient(180deg, #ffffffaa, #ffffff33);
+    }
+  }
+
+  .drop {
+    position: absolute;
+    top: -5vmin;
+    left: var(--x);
+    border: 0.25vmin solid transparent;
+    border-bottom-color: rgba(171, 194, 233, 0.85);
+    border-left-width: var(--thickness);
+    opacity: var(--opacity);
+    transform: rotate(calc(var(--angle) + var(--offset))) translateY(0);
+    animation: fall var(--duration) linear var(--delay) infinite;
+    will-change: transform;
+    filter: drop-shadow(0 0 0.35vmin rgba(173, 197, 227, 0.3));
+  }
+
+  @keyframes fall {
+    0% {
+      transform: rotate(calc(var(--angle) + var(--offset))) translateY(0);
+    }
+    100% {
+      transform: rotate(calc(var(--angle) + var(--offset))) translateY(calc(100vh + 10vmin));
+    }
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .hero-text {
+    max-width: 540px;
+    background: rgba(233, 236, 239, 0.14);
+    border: 1px solid rgba(206, 212, 218, 0.28);
+    border-radius: 16px;
+    padding: 2.4rem;
+    backdrop-filter: blur(16px);
+    color: #f8f9fa;
+    box-shadow: 0 35px 60px rgba(15, 31, 43, 0.35);
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 0.8rem;
+    color: rgba(233, 236, 239, 0.7);
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    margin: 0 0 1.5rem;
+    font-size: 2.5rem;
+    color: #f8f9fa;
+    text-shadow: 0 8px 16px rgba(7, 19, 28, 0.6);
   }
 
   .tagline {
-    font-size: 1.3rem;
-    color: #64748b;
-    max-width: 700px;
-    margin: 0 auto;
+    margin-bottom: 2.25rem;
+    color: rgba(233, 236, 239, 0.8);
+    line-height: 1.8;
   }
 
-  .categories {
-    margin-bottom: 4rem;
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
   }
 
-  .category-grid {
+  .primary-link,
+  .secondary-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.4rem;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+  }
+
+  .primary-link {
+    background: rgba(233, 236, 239, 0.85);
+    color: #212529;
+  }
+
+  .primary-link:hover {
+    background: rgba(233, 236, 239, 0.95);
+  }
+
+  .secondary-link {
+    background: rgba(233, 236, 239, 0.18);
+    border: 1px solid rgba(233, 236, 239, 0.4);
+    color: rgba(233, 236, 239, 0.9);
+  }
+
+  .secondary-link:hover {
+    background: rgba(233, 236, 239, 0.32);
+  }
+
+  .intro {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    align-items: start;
+    padding-bottom: 3rem;
   }
 
-  .category-card {
-    background: var(--card-background);
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-    transition: transform 0.2s, box-shadow 0.2s;
-    text-decoration: none;
-    color: var(--text-color);
-    border: 3px solid transparent;
+  .intro-text p {
+    color: var(--muted-text);
+    line-height: 1.8;
   }
 
-  .category-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-lg);
+  .intro-links h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    color: var(--heading-color);
   }
 
-  .category-card.dynamics {
-    border-color: #3b82f6;
-  }
-
-  .category-card.study-notes {
-    border-color: #10b981;
-  }
-
-  .category-card.daily-findings {
-    border-color: #f59e0b;
-  }
-
-  .category-card h3 {
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
-  }
-
-  .category-card p {
+  .intro-links ul {
+    list-style: none;
+    padding: 0;
     margin: 0;
-    color: #64748b;
-  }
-
-  .recent-posts h2 {
-    margin-bottom: 2rem;
-    color: var(--primary-color);
-  }
-
-  .posts-grid {
     display: grid;
-    gap: 1.5rem;
+    gap: 0.9rem;
+    color: var(--muted-text);
   }
 
-  .no-posts {
-    text-align: center;
-    color: #64748b;
-    font-size: 1.2rem;
-    padding: 3rem;
+  .intro-links a {
+    color: var(--heading-color);
+    text-decoration: underline;
   }
 
   @media (max-width: 768px) {
-    .hero h1 {
-      font-size: 2rem;
+    .hero {
+      min-height: 520px;
     }
 
-    .tagline {
-      font-size: 1.1rem;
+    .hero-text {
+      padding: 1.8rem;
     }
 
-    .category-grid {
+    .hero-text h1 {
+      font-size: 2.1rem;
+    }
+
+    .intro {
       grid-template-columns: 1fr;
     }
   }

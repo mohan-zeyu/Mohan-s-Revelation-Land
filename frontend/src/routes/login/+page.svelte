@@ -26,7 +26,7 @@
 </script>
 
 <svelte:head>
-  <title>Admin Login - My Personal Blog</title>
+  <title>Admin Login - Revelation Land</title>
 </svelte:head>
 
 <div class="container">
@@ -86,23 +86,24 @@
   }
 
   .login-card {
-    background: var(--card-background);
-    border-radius: 12px;
+    background: var(--surface-elevated);
+    border-radius: 16px;
     padding: 3rem;
     box-shadow: var(--shadow-lg);
     max-width: 450px;
     width: 100%;
+    border: 1px solid var(--border-color);
   }
 
   h1 {
     text-align: center;
-    color: var(--primary-color);
+    color: var(--heading-color);
     margin-bottom: 0.5rem;
   }
 
   .subtitle {
     text-align: center;
-    color: #64748b;
+    color: var(--muted-text);
     margin-bottom: 2rem;
   }
 
@@ -128,7 +129,7 @@
   }
 
   .back-link a {
-    color: #64748b;
+    color: var(--muted-text);
   }
 
   @media (max-width: 768px) {
