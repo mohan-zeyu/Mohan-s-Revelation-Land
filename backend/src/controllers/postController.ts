@@ -41,10 +41,13 @@ export const getPostById = (req: AuthRequest, res: Response) => {
 
 export const createPost = (req: AuthRequest, res: Response) => {
   try {
-    const { title, content, category } = req.body;
+    const { title, abstract, content, category } = req.body;
+    const trimmedAbstract = typeof abstract === 'string' ? abstract.trim() : '';
 
-    if (!title || !content || !category) {
-      return res.status(400).json({ error: 'Title, content, and category are required' });
+    if (!title || !trimmedAbstract || !content || !category) {
+      return res
+        .status(400)
+        .json({ error: 'Title, abstract, content, and category are required' });
     }
 
     if (!['dynamics', 'study-notes', 'daily-findings'].includes(category)) {
@@ -53,6 +56,7 @@ export const createPost = (req: AuthRequest, res: Response) => {
 
     const post = PostModel.create({
       title,
+      abstract: trimmedAbstract,
       content,
       category,
       author_id: req.user!.id
@@ -68,13 +72,24 @@ export const createPost = (req: AuthRequest, res: Response) => {
 export const updatePost = (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, content, category } = req.body;
+    const { title, abstract, content, category } = req.body;
+    const trimmedAbstract =
+      abstract === undefined ? undefined : typeof abstract === 'string' ? abstract.trim() : '';
 
     if (category && !['dynamics', 'study-notes', 'daily-findings'].includes(category)) {
       return res.status(400).json({ error: 'Invalid category' });
     }
 
-    const success = PostModel.update(parseInt(id), { title, content, category });
+    if (trimmedAbstract !== undefined && trimmedAbstract === '') {
+      return res.status(400).json({ error: 'Abstract cannot be empty' });
+    }
+
+    const success = PostModel.update(parseInt(id), {
+      title,
+      abstract: trimmedAbstract,
+      content,
+      category
+    });
 
     if (!success) {
       return res.status(404).json({ error: 'Post not found' });
