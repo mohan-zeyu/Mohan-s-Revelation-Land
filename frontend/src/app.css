@@ -5,18 +5,29 @@
 }
 
 :root {
-  --primary-color: #6366f1;
-  --secondary-color: #8b5cf6;
   --background-color: #f8f9fa;
-  --text-color: #1a1a1a;
-  --card-background: #ffffff;
-  --border-color: #e2e8f0;
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --surface-color: #f8f9fa;
+  --surface-elevated: #e9ecef;
+  --card-background: #dee2e6;
+  --border-color: #ced4da;
+  --muted-border: #dee2e6;
+  --text-color: #212529;
+  --heading-color: #343a40;
+  --muted-text: #6c757d;
+  --primary-color: #495057;
+  --secondary-color: #343a40;
+  --accent-blue: #6c757d;
+  --accent-green: #495057;
+  --accent-amber: #343a40;
+  --danger-color: #b02a37;
+  --danger-color-stronger: #842029;
+  --shadow: 0 10px 30px rgba(52, 58, 64, 0.08);
+  --shadow-lg: 0 25px 60px rgba(33, 37, 41, 0.15);
+  --font-family-base: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 body {
-  font-family: 'Comic Sans MS', cursive;
+  font-family: var(--font-family-base);
   background-color: var(--background-color);
   color: var(--text-color);
   line-height: 1.6;
@@ -26,7 +37,7 @@ body {
 a {
   color: var(--primary-color);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 a:hover {
@@ -34,65 +45,71 @@ a:hover {
 }
 
 button {
-  font-family: 'Comic Sans MS', cursive;
+  font-family: var(--font-family-base);
   cursor: pointer;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.2s;
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
 }
 
 button.primary {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--surface-color);
 }
 
 button.primary:hover {
   background-color: var(--secondary-color);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow);
 }
 
 button.secondary {
   background-color: transparent;
   color: var(--primary-color);
-  border: 2px solid var(--primary-color);
+  border: 1px solid var(--primary-color);
 }
 
 button.secondary:hover {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--surface-color);
 }
 
-input, textarea {
-  font-family: 'Comic Sans MS', cursive;
+input,
+textarea {
+  font-family: var(--font-family-base);
   padding: 0.75rem;
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 1rem;
   width: 100%;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: var(--surface-color);
+  color: var(--text-color);
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
   outline: none;
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(73, 80, 87, 0.12);
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.25rem 1.5rem;
 }
 
 .card {
-  background: var(--card-background);
-  border-radius: 12px;
+  background: var(--surface-elevated);
+  border-radius: 16px;
   padding: 2rem;
   box-shadow: var(--shadow);
   margin-bottom: 2rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
@@ -100,13 +117,19 @@ input:focus, textarea:focus {
   box-shadow: var(--shadow-lg);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin-bottom: 1rem;
-  font-weight: bold;
+  font-weight: 600;
+  color: var(--heading-color);
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2.4rem;
 }
 
 h2 {
@@ -114,7 +137,7 @@ h2 {
 }
 
 h3 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 
 p {
@@ -122,17 +145,19 @@ p {
 }
 
 .error {
-  color: #dc2626;
-  background-color: #fee2e2;
+  color: var(--danger-color);
+  background-color: rgba(176, 42, 55, 0.12);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 1rem;
+  border: 1px solid rgba(176, 42, 55, 0.2);
 }
 
 .success {
-  color: #16a34a;
-  background-color: #dcfce7;
+  color: #2f7a48;
+  background-color: rgba(33, 150, 83, 0.12);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 1rem;
+  border: 1px solid rgba(33, 150, 83, 0.2);
 }

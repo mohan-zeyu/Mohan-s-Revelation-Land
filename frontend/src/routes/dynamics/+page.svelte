@@ -2,14 +2,7 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/api/client';
   import PostCard from '$lib/components/PostCard.svelte';
-
-  interface Post {
-    id: number;
-    title: string;
-    content: string;
-    category: string;
-    created_at: string;
-  }
+  import type { Post } from '$lib/types';
 
   let posts: Post[] = [];
   let loading = true;
@@ -27,7 +20,7 @@
 </script>
 
 <svelte:head>
-  <title>Dynamics - My Personal Blog</title>
+  <title>Dynamics - Revelation Land</title>
 </svelte:head>
 
 <div class="container">
@@ -59,19 +52,24 @@
   .page-header {
     text-align: center;
     margin-bottom: 3rem;
-    padding: 2rem 0;
+    padding: 2.5rem 0;
+    background: var(--surface-elevated);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
   }
 
   .page-header h1 {
-    font-size: 3rem;
-    color: #3b82f6;
-    margin-bottom: 1rem;
+    font-size: 2.75rem;
+    color: var(--heading-color);
+    margin-bottom: 0.75rem;
   }
 
   .description {
-    font-size: 1.2rem;
-    color: #64748b;
+    font-size: 1.1rem;
+    color: var(--muted-text);
     margin: 0;
+    max-width: 600px;
+    margin-inline: auto;
   }
 
   .posts-section {
@@ -84,16 +82,21 @@
     gap: 1.5rem;
   }
 
-  .loading, .no-posts {
+  .loading,
+  .no-posts {
     text-align: center;
-    color: #64748b;
-    font-size: 1.2rem;
+    color: var(--muted-text);
+    font-size: 1.1rem;
     padding: 3rem;
   }
 
   @media (max-width: 768px) {
+    .page-header {
+      padding: 2rem 1.5rem;
+    }
+
     .page-header h1 {
-      font-size: 2rem;
+      font-size: 2.1rem;
     }
 
     .description {
