@@ -56,10 +56,6 @@
     z-index: 100;
   }
 
-  :global(header .container) {
-    padding: 0 1.5rem;
-  }
-
   nav {
     min-height: 50px;
   }
