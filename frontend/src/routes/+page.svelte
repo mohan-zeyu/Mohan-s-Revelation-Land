@@ -1,39 +1,50 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  interface RainDrop {
-    id: number;
-    x: number;
-    delay: number;
-    duration: number;
-    length: number;
-    opacity: number;
-    drift: number;
-    width: number;
+  const dropCount = 500;
+  const dropIds = Array.from({ length: dropCount }, (_, index) => index);
+  let targetAngle = 91;
+
+  function setAngle(angle: number) {
+    targetAngle = angle;
   }
 
-  function createRandom(seed: number) {
-    return function () {
-      seed |= 0;
-      seed = (seed + 0x6d2b79f5) | 0;
-      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  function resetAngle() {
+    targetAngle = 91;
+  }
+
+  function randomBetween(min: number, max: number) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function applyDropStyles(node: HTMLElement, options: { initial?: boolean } = {}) {
+    const { initial = false } = options;
+    const angle = initial ? 91 : targetAngle;
+
+    node.style.setProperty('--x', `${randomBetween(-10, 110)}vw`);
+    node.style.setProperty('--angle', `${angle}deg`);
+    node.style.setProperty('--opacity', `${randomBetween(0.25, 0.9)}`);
+    node.style.setProperty('--thickness', `${randomBetween(0.12, 0.6)}vmin`);
+    node.style.setProperty('--length', `${randomBetween(8, 26)}vmin`);
+    node.style.animationDuration = `${randomBetween(1.2, 2.6)}s`;
+    node.style.animationDelay = `${initial ? -randomBetween(0, 12) : -randomBetween(0, 1.2)}s`;
+  }
+
+  function rainDrop(node: HTMLElement) {
+    applyDropStyles(node, { initial: true });
+
+    const handle = () => {
+      applyDropStyles(node);
+    };
+
+    node.addEventListener('animationiteration', handle);
+
+    return {
+      destroy() {
+        node.removeEventListener('animationiteration', handle);
+      }
     };
   }
-
-  const dropCount = 500;
-  const random = createRandom(20240502);
-  const drops: RainDrop[] = Array.from({ length: dropCount }, (_, index) => ({
-    id: index,
-    x: random() * 120,
-    delay: random() * -12,
-    duration: 1.5 + random() * 2.5,
-    length: 12 + random() * 22,
-    opacity: 0.35 + random() * 0.45,
-    drift: -3 + random() * 6,
-    width: 1 + random() * 1.4
-  }));
 
   onMount(() => {
     document.body.classList.add('home-page');
@@ -53,15 +64,12 @@
 
 <section class="hero">
   <div class="rain" aria-hidden="true">
-    <div class="left"></div>
-    <div class="left center"></div>
-    <div class="right center"></div>
-    <div class="right"></div>
-    {#each drops as drop (drop.id)}
-      <span
-        class="drop"
-        style={`--x:${drop.x}vw; --delay:${drop.delay}s; --duration:${drop.duration}s; --length:${drop.length}vh; --opacity:${drop.opacity}; --drift:${drop.drift}vw; --width:${drop.width}px;`}
-      />
+    <div class="left" on:pointerenter={() => setAngle(105)} on:pointerleave={resetAngle}></div>
+    <div class="left center" on:pointerenter={() => setAngle(95)} on:pointerleave={resetAngle}></div>
+    <div class="right center" on:pointerenter={() => setAngle(85)} on:pointerleave={resetAngle}></div>
+    <div class="right" on:pointerenter={() => setAngle(75)} on:pointerleave={resetAngle}></div>
+    {#each dropIds as dropId (dropId)}
+      <span class="drop" use:rainDrop />
     {/each}
   </div>
 
@@ -126,13 +134,19 @@
     padding: 4rem 0;
   }
 
+  @property --angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 91deg;
+  }
+
   .rain {
     position: absolute;
     inset: 0;
     width: 120vw;
     left: -10vw;
     z-index: 0;
-    --speed: 1;
+    cursor: pointer;
   }
 
   .rain .left,
@@ -144,7 +158,6 @@
     height: 100%;
     top: 0;
     pointer-events: auto;
-    cursor: pointer;
   }
 
   .rain .left {
@@ -163,48 +176,43 @@
     right: 10vw;
   }
 
-  .rain .left:hover ~ .drop {
-    --wind: -3vw;
-  }
-
-  .rain .left.center:hover ~ .drop {
-    --wind: -1.5vw;
-  }
-
-  .rain .right.center:hover ~ .drop {
-    --wind: 1.5vw;
-  }
-
-  .rain .right:hover ~ .drop {
-    --wind: 3vw;
-  }
-
   .rain:active {
-    --speed: 1.6;
+    animation: lightning 0.1s linear 0s 2, lightning 0.15s ease-out 0.25s 1;
   }
 
   .drop {
     position: absolute;
-    top: -15vh;
+    top: -5vmin;
     left: var(--x);
-    width: var(--width);
-    height: var(--length);
-    background: linear-gradient(180deg, rgba(222, 226, 230, 0), rgba(173, 197, 227, 0.55) 55%, rgba(173, 197, 227, 0.9));
+    border: 0.25vmin solid transparent;
+    border-bottom-color: rgba(171, 194, 233, var(--opacity));
+    border-left-width: var(--thickness);
+    border-bottom-width: var(--length);
     opacity: var(--opacity);
-    animation: fall calc(var(--duration) / var(--speed)) linear var(--delay) infinite;
-    will-change: transform;
-    border-radius: 999px;
-    filter: drop-shadow(0 14px 18px rgba(15, 31, 43, 0.35));
+    animation: fall infinite;
+    animation-timing-function: ease-in;
     pointer-events: none;
-    --wind: 0vw;
+    transform-origin: center;
+    will-change: transform;
   }
 
   @keyframes fall {
-    from {
-      transform: translate3d(0, -15vh, 0);
+    0% {
+      transform: rotate(var(--angle)) translateX(0);
     }
-    to {
-      transform: translate3d(calc(var(--drift) + var(--wind)), 110vh, 0);
+    100% {
+      transform: rotate(var(--angle)) translateX(calc(100vh + 5vmin));
+    }
+  }
+
+  @keyframes lightning {
+    50% {
+      background: radial-gradient(
+          circle at calc(50% - 10vw) -20%,
+          rgba(255, 255, 255, 0.24),
+          rgba(255, 255, 255, 0) 20%
+        ),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.18));
     }
   }
 
