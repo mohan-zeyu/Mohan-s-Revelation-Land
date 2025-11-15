@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import type { PostCategory } from '$lib/types';
 
 const API_URL = browser ? '/api' : 'http://localhost:3000/api';
 
@@ -56,18 +57,18 @@ export const api = {
 
   getPostById: (id: number) => apiRequest(`/posts/${id}`),
 
-  createPost: (title: string, content: string, category: string) =>
+  createPost: (title: string, abstract: string, content: string, category: PostCategory) =>
     apiRequest('/posts', {
       method: 'POST',
       requiresAuth: true,
-      body: JSON.stringify({ title, content, category })
+      body: JSON.stringify({ title, abstract, content, category })
     }),
 
-  updatePost: (id: number, title: string, content: string, category: string) =>
+  updatePost: (id: number, title: string, abstract: string, content: string, category: PostCategory) =>
     apiRequest(`/posts/${id}`, {
       method: 'PUT',
       requiresAuth: true,
-      body: JSON.stringify({ title, content, category })
+      body: JSON.stringify({ title, abstract, content, category })
     }),
 
   deletePost: (id: number) =>

@@ -3,6 +3,7 @@ import db from '../config/database';
 export interface Post {
   id?: number;
   title: string;
+  abstract: string;
   content: string;
   category: 'dynamics' | 'study-notes' | 'daily-findings';
   author_id: number;
@@ -13,9 +14,15 @@ export interface Post {
 export class PostModel {
   static create(post: Omit<Post, 'id' | 'created_at' | 'updated_at'>): Post {
     const stmt = db.prepare(
-      'INSERT INTO posts (title, content, category, author_id) VALUES (?, ?, ?, ?)'
+      'INSERT INTO posts (title, abstract, content, category, author_id) VALUES (?, ?, ?, ?, ?)'
     );
-    const result = stmt.run(post.title, post.content, post.category, post.author_id);
+    const result = stmt.run(
+      post.title,
+      post.abstract,
+      post.content,
+      post.category,
+      post.author_id
+    );
     return {
       id: result.lastInsertRowid as number,
       ...post
@@ -44,6 +51,10 @@ export class PostModel {
     if (post.title !== undefined) {
       fields.push('title = ?');
       values.push(post.title);
+    }
+    if (post.abstract !== undefined) {
+      fields.push('abstract = ?');
+      values.push(post.abstract);
     }
     if (post.content !== undefined) {
       fields.push('content = ?');

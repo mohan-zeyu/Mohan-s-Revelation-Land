@@ -1,10 +1,12 @@
 <script lang="ts">
-  export let post: {
-    id: number;
-    title: string;
-    content: string;
-    category: string;
-    created_at: string;
+  import type { Post } from '$lib/types';
+
+  export let post: Post;
+
+  const categoryLabels: Record<Post['category'], string> = {
+    dynamics: 'Dynamics',
+    'study-notes': 'Study Notes',
+    'daily-findings': 'Daily Findings'
   };
 
   function formatDate(dateString: string): string {
@@ -16,58 +18,92 @@
     });
   }
 
-  function getExcerpt(content: string, maxLength: number = 150): string {
-    if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength) + '...';
+  function formatCategory(category: Post['category']): string {
+    return categoryLabels[category] ?? category;
   }
+
 </script>
 
-<article class="post-card">
+<a
+  class="post-card"
+  href={`/posts/${post.id}`}
+  target="_blank"
+  rel="noopener noreferrer"
+>
   <div class="post-header">
-    <h3>{post.title}</h3>
-    <span class="date">{formatDate(post.created_at)}</span>
+    <div>
+      <h3>{post.title}</h3>
+      <p class="meta">{formatDate(post.created_at)}</p>
+    </div>
+    <span class={`category-tag ${post.category}`}>{formatCategory(post.category)}</span>
   </div>
-  <p class="content">{getExcerpt(post.content)}</p>
-</article>
+  <p class="abstract">{post.abstract}</p>
+</a>
 
 <style>
-  .post-card {
-    background: var(--card-background);
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-    margin-bottom: 1.5rem;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
+.post-card {
+  display: block;
+  background: var(--card-background);
+  border-radius: 12px;
+  padding: 1.75rem;
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  color: inherit;
+}
 
-  .post-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-  }
+.post-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow);
+}
 
-  .post-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
 
-  h3 {
-    color: var(--primary-color);
-    margin: 0;
-    font-size: 1.5rem;
-  }
+.post-header h3 {
+  color: var(--heading-color);
+  margin: 0 0 0.35rem 0;
+  font-size: 1.4rem;
+}
 
-  .date {
-    color: #64748b;
-    font-size: 0.9rem;
-  }
+.meta {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted-text);
+  text-transform: capitalize;
+}
 
-  .content {
-    color: var(--text-color);
-    line-height: 1.8;
-    margin: 0;
-  }
+.category-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--surface-color);
+}
+
+.category-tag.dynamics {
+  background-color: var(--accent-blue);
+}
+
+.category-tag.study-notes {
+  background-color: var(--accent-green);
+}
+
+.category-tag.daily-findings {
+  background-color: var(--accent-amber);
+}
+
+.abstract {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-color);
+}
 </style>

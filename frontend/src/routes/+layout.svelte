@@ -16,7 +16,7 @@
   </main>
   <footer>
     <div class="container">
-      <p>&copy; {new Date().getFullYear()} My Personal Blog. All rights reserved.</p>
+      <p>&copy; {new Date().getFullYear()} Revelation Land · Crafted by Mohan.</p>
     </div>
   </footer>
 </div>
@@ -34,7 +34,7 @@
   }
 
   footer {
-    background: white;
+    background: rgba(233, 236, 239, 0.7);
     border-top: 1px solid var(--border-color);
     padding: 2rem 0;
     margin-top: 4rem;
@@ -42,7 +42,7 @@
 
   footer p {
     text-align: center;
-    color: #64748b;
+    color: var(--muted-text);
     margin: 0;
   }
 </style>
