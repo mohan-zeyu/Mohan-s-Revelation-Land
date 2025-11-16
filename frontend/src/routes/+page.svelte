@@ -2,64 +2,51 @@
   import { onMount } from 'svelte';
 
   const dropCount = 500;
-  const dropIds = Array.from({ length: dropCount }, (_, index) => index);
-  let targetAngle = 91;
-
-  function setAngle(angle: number) {
-    targetAngle = angle;
-  }
-
-  function resetAngle() {
-    targetAngle = 91;
-  }
-
-  function randomBetween(min: number, max: number) {
-    return Math.random() * (max - min) + min;
-  }
-
-  function applyDropStyles(node: HTMLElement, options: { initial?: boolean } = {}) {
-    const { initial = false } = options;
-    const angle = initial ? 91 : targetAngle;
-    const fallDistance =
-      typeof window !== 'undefined' ? window.innerHeight + 160 : 960;
-    const angleOffset = angle - 90;
-    const drift = Math.tan((angleOffset * Math.PI) / 180) * fallDistance;
-    const startOffset = -randomBetween(0.15, 0.95) * fallDistance;
-    const duration = randomBetween(1.6, 3.1);
-    const resetDelay = initial ? randomBetween(0, duration) : randomBetween(0, 0.9);
-
-    node.style.left = `${randomBetween(-10, 110)}vw`;
-    node.style.setProperty('--angle', `${angle}deg`);
-    node.style.setProperty('--opacity', `${randomBetween(0.25, 0.9)}`);
-    node.style.setProperty('--thickness', `${randomBetween(0.12, 0.6)}vmin`);
-    node.style.setProperty('--length', `${randomBetween(8, 26)}vmin`);
-    node.style.setProperty('--drift', `${drift}px`);
-    node.style.setProperty('--fall-distance', `${fallDistance}px`);
-    node.style.setProperty('--start-offset', `${startOffset}px`);
-    node.style.animationDuration = `${duration}s`;
-    node.style.animationDelay = `${-resetDelay}s`;
-  }
-
-  function rainDrop(node: HTMLElement) {
-    applyDropStyles(node, { initial: true });
-
-    const handle = () => {
-      applyDropStyles(node);
-    };
-
-    node.addEventListener('animationiteration', handle);
-
-    return {
-      destroy() {
-        node.removeEventListener('animationiteration', handle);
-      }
-    };
-  }
+  let rainEl: HTMLDivElement | null = null;
 
   onMount(() => {
     document.body.classList.add('home-page');
+
+    const drops: HTMLElement[] = [];
+    const styleEl = document.createElement('style');
+    document.head.appendChild(styleEl);
+
+    if (rainEl) {
+      for (let i = 0; i < dropCount; i += 1) {
+        const drop = document.createElement('div');
+        drop.className = 'drop';
+
+        const opacity = (Math.floor(Math.random() * 90) + 1) * 0.01;
+        const left = Math.floor(Math.random() * 1200) * 0.1;
+        const borderWidth = Math.floor(Math.random() * 80) * 0.1;
+        const duration = (Math.floor(Math.random() * 15) + 1) * 0.15;
+        const delay = (Math.floor(Math.random() * 25) + 1) * -0.5;
+        const rotatePoint = Math.floor(Math.random() * 50) / 500;
+
+        drop.style.opacity = `${opacity}`;
+        drop.style.left = `${left}vw`;
+        drop.style.borderLeftWidth = `${borderWidth}vmin`;
+        drop.style.animation = `fall-${i} ${duration}s ${delay}s ease-in infinite`;
+
+        const keyframes = `@keyframes fall-${i} {
+          ${(rotatePoint * 100).toFixed(2)}% {
+            transform: rotate(var(--angle)) translateX(0);
+          }
+          100% {
+            transform: rotate(var(--angle)) translateX(calc(100vh + 5vmin));
+          }
+        }`;
+
+        styleEl.append(keyframes);
+        rainEl.appendChild(drop);
+        drops.push(drop);
+      }
+    }
+
     return () => {
       document.body.classList.remove('home-page');
+      drops.forEach((drop) => drop.remove());
+      styleEl.remove();
     };
   });
 </script>
@@ -73,16 +60,11 @@
 </svelte:head>
 
 <section class="hero">
-  <div class="rain" aria-hidden="true">
-    <div class="left" on:pointerenter={() => setAngle(105)} on:pointerleave={resetAngle}></div>
-    <div class="left center" on:pointerenter={() => setAngle(95)} on:pointerleave={resetAngle}></div>
-    <div class="right center" on:pointerenter={() => setAngle(85)} on:pointerleave={resetAngle}></div>
-    <div class="right" on:pointerenter={() => setAngle(75)} on:pointerleave={resetAngle}></div>
-    {#each dropIds as dropId (dropId)}
-      <span class="drop" use:rainDrop>
-        <span class="streak" />
-      </span>
-    {/each}
+  <div class="rain" aria-hidden="true" bind:this={rainEl}>
+    <div class="left"></div>
+    <div class="left center"></div>
+    <div class="right center"></div>
+    <div class="right"></div>
   </div>
 
   <div class="hero-inner container">
@@ -124,21 +106,21 @@
 </section>
 
 <style>
+  @property --angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 91deg;
+  }
+
   :global(body.home-page) {
-    background: linear-gradient(180deg, #07131c, #305472 60%, #0f1f2b 100%);
+    background: linear-gradient(180deg, #07131c, #305472);
     color: var(--surface-color);
     overflow-x: hidden;
   }
 
-  :global(body.home-page)::before,
-  :global(body.home-page)::after {
-    content: "";
-    display: none;
-  }
-
   .hero {
     position: relative;
-    min-height: 80vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -146,89 +128,169 @@
     padding: 4rem 0;
   }
 
-  @property --angle {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 91deg;
+  .hero::before,
+  .hero::after {
+    content: 'CLICK & HOLD TO CREATE LIGHTNING';
+    font-family: Arial, Helvetica, serif;
+    font-size: 12px;
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    bottom: 18px;
+    color: rgba(255, 255, 255, 0.27);
+    z-index: 0;
+  }
+
+  .hero::before {
+    content: 'HOVER SCREEN TO CHANGE WIND SPEED';
+    top: 18px;
+    bottom: auto;
+  }
+
+  .hero:active::before,
+  .hero:active::after {
+    color: rgba(255, 255, 255, 0);
+    transition: all 0.5s ease 0s;
   }
 
   .rain {
     position: absolute;
-    inset: 0;
     width: 120vw;
+    height: 100%;
     left: -10vw;
-    z-index: 0;
     cursor: pointer;
+    z-index: 0;
   }
 
-  .rain .left,
-  .rain .right,
-  .rain .left.center,
-  .rain .right.center {
-    position: absolute;
+  .left,
+  .right {
     width: 20vw;
     height: 100%;
-    top: 0;
-    pointer-events: auto;
-  }
-
-  .rain .left {
     left: 10vw;
+    position: absolute;
+    box-sizing: border-box;
+    z-index: 2;
   }
 
-  .rain .left.center {
-    left: 30vw;
-  }
-
-  .rain .right.center {
-    right: 30vw;
-  }
-
-  .rain .right {
+  .right {
+    left: initial;
     right: 10vw;
   }
 
-  .rain:active {
+  .right::after {
+    content: '▲ \A ▼';
+    position: fixed;
+    text-indent: 1px;
+    left: calc(50% - 30px);
+    top: 45px;
+    color: rgba(255, 255, 255, 0.53);
+    font-size: 20px;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 100%;
+    width: 60px;
+    height: 60px;
+    box-sizing: border-box;
+    padding: 13px 18px;
+    text-align: center;
+    line-height: 15px;
+    transition: all 0.5s ease 0s;
+    white-space: pre-wrap;
+  }
+
+  .right.center {
+    right: 30vw;
+  }
+
+  .right.center::after {
+    display: none;
+  }
+
+  .left.center {
+    left: 30vw;
+  }
+
+  .rain::after {
+    content: '↯';
+    position: fixed;
+    left: calc(50% - 30px);
+    bottom: 45px;
+    color: rgba(255, 255, 255, 0.53);
+    font-size: 35px;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 100%;
+    width: 60px;
+    height: 60px;
+    box-sizing: border-box;
+    padding: 13px 18px;
+    text-align: center;
+    line-height: 30px;
+    transition: all 0.5s ease 0s;
+    white-space: pre-wrap;
+  }
+
+  .left:hover ~ :global(.drop) {
+    --angle: 105deg;
+  }
+
+  .left:hover ~ .right::after {
+    transform: rotate(22deg);
+    transition: all 0.5s ease 0s;
+  }
+
+  .right:hover::after {
+    transform: rotate(-22deg);
+    transition: all 0.5s ease 0s;
+  }
+
+  .right:hover ~ :global(.drop) {
+    --angle: 75deg;
+  }
+
+  .right.center:hover ~ :global(.drop) {
+    --angle: 85deg;
+  }
+
+  .right.center:hover ~ .right::after {
+    transform: rotate(-12deg);
+    transition: all 0.5s ease 0s;
+  }
+
+  .left.center:hover ~ :global(.drop) {
+    --angle: 95deg;
+  }
+
+  .left.center:hover ~ .right::after {
+    transform: rotate(12deg);
+    transition: all 0.5s ease 0s;
+  }
+
+  .hero:active .rain {
+    cursor: none;
     animation: lightning 0.1s linear 0s 2, lightning 0.15s ease-out 0.25s 1;
   }
 
-  .drop {
-    position: absolute;
-    top: 0;
-    pointer-events: none;
-    animation: fall linear infinite;
-    will-change: transform;
-  }
-
-  .streak {
-    display: block;
-    border: 0.25vmin solid transparent;
-    border-bottom-color: rgba(171, 194, 233, var(--opacity));
-    border-left-width: var(--thickness);
-    border-bottom-width: var(--length);
-    opacity: var(--opacity);
-    transform: rotate(var(--angle));
-    transform-origin: top left;
-  }
-
-  @keyframes fall {
-    0% {
-      transform: translate3d(0, var(--start-offset, -160px), 0);
-    }
-    100% {
-      transform: translate3d(var(--drift, 0px), var(--fall-distance, 120vh), 0);
-    }
+  .hero:active .rain::after,
+  .hero:active .right::after {
+    opacity: 0;
+    transition: all 0.5s ease 0s;
   }
 
   @keyframes lightning {
     50% {
       background: radial-gradient(
           circle at calc(50% - 10vw) -20%,
-          rgba(255, 255, 255, 0.24),
+          rgba(255, 255, 255, 0.27),
           rgba(255, 255, 255, 0) 20%
         ),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.18));
+        linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
     }
+  }
+
+  :global(.drop) {
+    border: 0.25vmin solid transparent;
+    border-bottom-color: #abc2e9;
+    position: absolute;
+    top: -5vmin;
   }
 
   .hero-inner {
