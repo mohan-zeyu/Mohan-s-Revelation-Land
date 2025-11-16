@@ -3,14 +3,7 @@
   import { goto } from '$app/navigation';
   import { authStore } from '$lib/stores/auth';
   import { api } from '$lib/api/client';
-
-  interface Post {
-    id: number;
-    title: string;
-    content: string;
-    category: string;
-    created_at: string;
-  }
+  import type { Post } from '$lib/types';
 
   let posts: Post[] = [];
   let loading = true;
@@ -20,6 +13,7 @@
 
   // Form fields
   let title = '';
+  let abstract = '';
   let content = '';
   let category = 'dynamics';
 
@@ -46,6 +40,7 @@
   function openNewPostForm() {
     editingPost = null;
     title = '';
+    abstract = '';
     content = '';
     category = 'dynamics';
     showForm = true;
@@ -54,6 +49,7 @@
   function openEditForm(post: Post) {
     editingPost = post;
     title = post.title;
+    abstract = post.abstract;
     content = post.content;
     category = post.category;
     showForm = true;
@@ -63,8 +59,22 @@
     showForm = false;
     editingPost = null;
     title = '';
+    abstract = '';
     content = '';
     category = 'dynamics';
+  }
+
+  function handleOverlayClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      closeForm();
+    }
+  }
+
+  function handleOverlayKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      closeForm();
+    }
   }
 
   async function handleSubmit(e: Event) {
@@ -73,9 +83,9 @@
 
     try {
       if (editingPost) {
-        await api.updatePost(editingPost.id, title, content, category);
+        await api.updatePost(editingPost.id, title, abstract, content, category);
       } else {
-        await api.createPost(title, content, category);
+        await api.createPost(title, abstract, content, category);
       }
 
       closeForm();
@@ -109,7 +119,7 @@
 </script>
 
 <svelte:head>
-  <title>Admin Dashboard - My Personal Blog</title>
+  <title>Admin Dashboard - Revelation Land</title>
 </svelte:head>
 
 <div class="container">
@@ -123,8 +133,15 @@
   {/if}
 
   {#if showForm}
-    <div class="modal-overlay" on:click={closeForm}>
-      <div class="modal" on:click|stopPropagation>
+    <div
+      class="modal-overlay"
+      role="button"
+      tabindex="0"
+      on:click={handleOverlayClick}
+      on:keydown={handleOverlayKeydown}
+      aria-label="Close post editor"
+    >
+      <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
         <h2>{editingPost ? 'Edit Post' : 'Create New Post'}</h2>
 
         <form on:submit={handleSubmit}>
@@ -137,6 +154,18 @@
               placeholder="Enter post title"
               required
             />
+          </div>
+
+          <div class="form-group">
+            <label for="abstract">Abstract</label>
+            <textarea
+              id="abstract"
+              bind:value={abstract}
+              placeholder="Write a short summary that will appear in listings"
+              rows="3"
+              required
+            ></textarea>
+            <p class="field-hint">Aim for one or two concise sentences.</p>
           </div>
 
           <div class="form-group">
@@ -189,7 +218,7 @@
                 <span class="category-badge {post.category}">{post.category}</span>
                 <span class="date">{formatDate(post.created_at)}</span>
               </div>
-              <p class="excerpt">{post.content.substring(0, 100)}...</p>
+              <p class="abstract">{post.abstract}</p>
             </div>
             <div class="post-actions">
               <button class="edit-btn" on:click={() => openEditForm(post)}>
@@ -211,35 +240,42 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
     flex-wrap: wrap;
     gap: 1rem;
   }
 
   .admin-header h1 {
-    color: var(--primary-color);
+    color: var(--heading-color);
     margin: 0;
+    font-size: 2.2rem;
   }
 
   .posts-section h2 {
     margin-bottom: 1.5rem;
-    color: var(--text-color);
+    color: var(--heading-color);
   }
 
   .posts-table {
     display: grid;
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .post-row {
-    background: var(--card-background);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
+    background: var(--surface-elevated);
+    border-radius: 14px;
+    padding: 1.75rem;
+    border: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .post-row:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
   }
 
   .post-info {
@@ -248,7 +284,7 @@
 
   .post-info h3 {
     margin: 0 0 0.5rem 0;
-    color: var(--primary-color);
+    color: var(--heading-color);
   }
 
   .post-meta {
@@ -256,36 +292,40 @@
     gap: 1rem;
     align-items: center;
     margin-bottom: 0.5rem;
+    flex-wrap: wrap;
   }
 
   .category-badge {
     padding: 0.25rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
     font-weight: 600;
-    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--surface-color);
   }
 
   .category-badge.dynamics {
-    background-color: #3b82f6;
+    background-color: var(--accent-blue);
   }
 
   .category-badge.study-notes {
-    background-color: #10b981;
+    background-color: var(--accent-green);
   }
 
   .category-badge.daily-findings {
-    background-color: #f59e0b;
+    background-color: var(--accent-amber);
   }
 
   .date {
-    color: #64748b;
+    color: var(--muted-text);
     font-size: 0.9rem;
   }
 
-  .excerpt {
-    color: #64748b;
+  .abstract {
+    color: var(--text-color);
     margin: 0;
+    line-height: 1.6;
   }
 
   .post-actions {
@@ -293,15 +333,16 @@
     gap: 0.5rem;
   }
 
-  .edit-btn, .delete-btn {
-    padding: 0.5rem 1rem;
+  .edit-btn,
+  .delete-btn {
+    padding: 0.55rem 1rem;
     border-radius: 6px;
     font-size: 0.9rem;
   }
 
   .edit-btn {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--surface-color);
   }
 
   .edit-btn:hover {
@@ -309,12 +350,12 @@
   }
 
   .delete-btn {
-    background-color: #ef4444;
-    color: white;
+    background-color: var(--danger-color);
+    color: var(--surface-color);
   }
 
   .delete-btn:hover {
-    background-color: #dc2626;
+    background-color: var(--danger-color-stronger);
   }
 
   .modal-overlay {
@@ -332,17 +373,19 @@
   }
 
   .modal {
-    background: var(--card-background);
-    border-radius: 12px;
-    padding: 2rem;
-    max-width: 700px;
+    background: var(--surface-elevated);
+    border-radius: 16px;
+    padding: 2.25rem;
+    max-width: 720px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
   }
 
   .modal h2 {
-    color: var(--primary-color);
+    color: var(--heading-color);
     margin-bottom: 1.5rem;
   }
 
@@ -353,23 +396,30 @@
   label {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--text-color);
+    color: var(--heading-color);
     font-weight: 600;
   }
 
+  .field-hint {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--muted-text);
+  }
+
   select {
-    font-family: 'Comic Sans MS', cursive;
+    font-family: var(--font-family-base);
     padding: 0.75rem;
-    border: 2px solid var(--border-color);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
     width: 100%;
-    background: white;
+    background: var(--surface-color);
   }
 
   select:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(73, 80, 87, 0.12);
   }
 
   .form-actions {
@@ -378,9 +428,10 @@
     justify-content: flex-end;
   }
 
-  .loading, .no-posts {
+  .loading,
+  .no-posts {
     text-align: center;
-    color: #64748b;
+    color: var(--muted-text);
     font-size: 1.1rem;
     padding: 2rem;
   }

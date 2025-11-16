@@ -13,7 +13,9 @@
   <nav class="container">
     <div class="nav-content">
       <a href="/" class="logo">
-        <h2>My Personal Blog</h2>
+        <span class="logo-title">Revelation Land</span>
+        <span class="divider" aria-hidden="true">·</span>
+        <span class="tagline">Mohan</span>
       </a>
 
       <ul class="nav-links">
@@ -28,6 +30,9 @@
         </li>
         <li>
           <a href="/daily-findings" class:active={$page.url.pathname === '/daily-findings'}>Daily Findings</a>
+        </li>
+        <li>
+          <a href="/recent" class:active={$page.url.pathname === '/recent'}>Recent Posts</a>
         </li>
         {#if $authStore.isAuthenticated}
           <li>
@@ -44,52 +49,96 @@
 
 <style>
   header {
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: rgba(248, 249, 250, 0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 100;
+  }
+
+  :global(header .container) {
+    padding: 0 1.25rem;
+  }
+
+  nav {
+    min-height: 46px;
   }
 
   .nav-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 0;
+    height: 46px;
+    gap: 1.25rem;
   }
 
-  .logo h2 {
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    line-height: 1;
+  }
+
+  .logo-title {
     margin: 0;
-    color: var(--primary-color);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--heading-color);
+    text-transform: uppercase;
+  }
+
+  .divider {
+    font-size: 1.1rem;
+    color: var(--muted-text);
+  }
+
+  .tagline {
+    font-size: 0.8rem;
+    color: var(--muted-text);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
   }
 
   .nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 1.25rem;
     list-style: none;
     align-items: center;
+    margin: 0;
   }
 
   .nav-links a {
-    font-size: 1.1rem;
+    font-size: 0.88rem;
     font-weight: 600;
-    transition: color 0.2s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding-bottom: 0.15rem;
+    border-bottom: 2px solid transparent;
+    color: var(--muted-text);
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .nav-links a:hover {
+    color: var(--heading-color);
   }
 
   .nav-links a.active {
-    color: var(--secondary-color);
-    border-bottom: 3px solid var(--secondary-color);
+    color: var(--heading-color);
+    border-bottom-color: var(--primary-color);
   }
 
   .logout-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    background-color: #ef4444;
-    color: white;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.85rem;
+    background-color: var(--danger-color);
+    color: var(--surface-color);
+    border-radius: 999px;
   }
 
   .logout-btn:hover {
-    background-color: #dc2626;
+    background-color: var(--danger-color-stronger);
   }
 
   @media (max-width: 768px) {
