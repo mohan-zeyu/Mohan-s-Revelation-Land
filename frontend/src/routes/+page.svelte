@@ -20,14 +20,24 @@
   function applyDropStyles(node: HTMLElement, options: { initial?: boolean } = {}) {
     const { initial = false } = options;
     const angle = initial ? 91 : targetAngle;
+    const fallDistance =
+      typeof window !== 'undefined' ? window.innerHeight + 160 : 960;
+    const angleOffset = angle - 90;
+    const drift = Math.tan((angleOffset * Math.PI) / 180) * fallDistance;
+    const startOffset = -randomBetween(0.15, 0.95) * fallDistance;
+    const duration = randomBetween(1.6, 3.1);
+    const resetDelay = initial ? randomBetween(0, duration) : randomBetween(0, 0.9);
 
-    node.style.setProperty('--x', `${randomBetween(-10, 110)}vw`);
+    node.style.left = `${randomBetween(-10, 110)}vw`;
     node.style.setProperty('--angle', `${angle}deg`);
     node.style.setProperty('--opacity', `${randomBetween(0.25, 0.9)}`);
     node.style.setProperty('--thickness', `${randomBetween(0.12, 0.6)}vmin`);
     node.style.setProperty('--length', `${randomBetween(8, 26)}vmin`);
-    node.style.animationDuration = `${randomBetween(1.2, 2.6)}s`;
-    node.style.animationDelay = `${initial ? -randomBetween(0, 12) : -randomBetween(0, 1.2)}s`;
+    node.style.setProperty('--drift', `${drift}px`);
+    node.style.setProperty('--fall-distance', `${fallDistance}px`);
+    node.style.setProperty('--start-offset', `${startOffset}px`);
+    node.style.animationDuration = `${duration}s`;
+    node.style.animationDelay = `${-resetDelay}s`;
   }
 
   function rainDrop(node: HTMLElement) {
@@ -69,7 +79,9 @@
     <div class="right center" on:pointerenter={() => setAngle(85)} on:pointerleave={resetAngle}></div>
     <div class="right" on:pointerenter={() => setAngle(75)} on:pointerleave={resetAngle}></div>
     {#each dropIds as dropId (dropId)}
-      <span class="drop" use:rainDrop />
+      <span class="drop" use:rainDrop>
+        <span class="streak" />
+      </span>
     {/each}
   </div>
 
@@ -182,26 +194,29 @@
 
   .drop {
     position: absolute;
-    top: -5vmin;
-    left: var(--x);
+    top: 0;
+    pointer-events: none;
+    animation: fall linear infinite;
+    will-change: transform;
+  }
+
+  .streak {
+    display: block;
     border: 0.25vmin solid transparent;
     border-bottom-color: rgba(171, 194, 233, var(--opacity));
     border-left-width: var(--thickness);
     border-bottom-width: var(--length);
     opacity: var(--opacity);
-    animation: fall infinite;
-    animation-timing-function: ease-in;
-    pointer-events: none;
-    transform-origin: center;
-    will-change: transform;
+    transform: rotate(var(--angle));
+    transform-origin: top left;
   }
 
   @keyframes fall {
     0% {
-      transform: rotate(var(--angle)) translateX(0);
+      transform: translate3d(0, var(--start-offset, -160px), 0);
     }
     100% {
-      transform: rotate(var(--angle)) translateX(calc(100vh + 5vmin));
+      transform: translate3d(var(--drift, 0px), var(--fall-distance, 120vh), 0);
     }
   }
 
