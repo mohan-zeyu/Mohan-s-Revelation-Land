@@ -13,63 +13,49 @@
   <meta name="description" content="Catch up on the most recent posts from Mohan at Revelation Land." />
 </svelte:head>
 
-<div class="container recent">
-  <header class="page-header">
-    <h1>Recent Posts</h1>
-    <p class="description">
-      A chronological feed of everything new in Revelation Land. Posts open in a new tab with
-      full Markdown rendering and an auto-generated table of contents.
+<div class="container page-grid recent-page">
+  <section class="section-hero">
+    <p class="section-kicker">Recent</p>
+    <h1>Latest across Revelation Land</h1>
+    <p class="section-description">
+      A chronological feed of everything new. Posts open in a dedicated view with Markdown rendering and
+      an auto-generated table of contents.
     </p>
-  </header>
+  </section>
 
-  {#if error}
-    <div class="error">{error}</div>
-  {:else if posts.length === 0}
-    <p class="empty">No posts published yet. Check back soon!</p>
-  {:else}
-    <div class="posts-list">
-      {#each posts as post (post.id)}
-        <PostCard {post} />
-      {/each}
-    </div>
-  {/if}
+  <section class="posts-shell">
+    {#if error}
+      <div class="error">{error}</div>
+    {:else if posts.length === 0}
+      <p class="status-text">No posts published yet. Check back soon!</p>
+    {:else}
+      <div class="posts-meta">
+        <span>{posts.length === 1 ? '1 entry' : `${posts.length} entries`}</span>
+        <span>chronicle</span>
+      </div>
+      <div class="posts-grid">
+        {#each posts as post (post.id)}
+          <PostCard {post} />
+        {/each}
+      </div>
+    {/if}
+  </section>
 </div>
 
 <style>
-  .recent {
-    max-width: 900px;
+  .recent-page {
+    padding-top: 4rem;
   }
 
-  .page-header {
-    text-align: center;
-    margin-bottom: 3rem;
-  }
-
-  .page-header h1 {
-    font-size: 2.6rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .description {
-    color: var(--muted-text);
-    margin: 0;
-    line-height: 1.7;
-  }
-
-  .posts-list {
-    display: grid;
-    gap: 1.5rem;
-  }
-
-  .empty {
-    text-align: center;
-    color: var(--muted-text);
-    padding: 3rem 0;
+  .recent-page .posts-meta span:first-child {
+    background: rgba(125, 211, 255, 0.08);
+    border-color: rgba(125, 211, 255, 0.3);
+    color: var(--heading-color);
   }
 
   @media (max-width: 768px) {
-    .page-header h1 {
-      font-size: 2rem;
+    .recent-page {
+      padding-top: 2rem;
     }
   }
 </style>

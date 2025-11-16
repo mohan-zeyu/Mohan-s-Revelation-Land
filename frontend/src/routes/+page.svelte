@@ -1,17 +1,108 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  const dropCount = 500;
+  const dropCount = 200;
+  const DEFAULT_ANGLE = 91;
+  const MIN_ANGLE = 75;
+  const MAX_ANGLE = 105;
+  const splashCount = 40;
   let rainEl: HTMLDivElement | null = null;
+  let splashEl: HTMLDivElement | null = null;
+  let targetAngle = DEFAULT_ANGLE;
 
   onMount(() => {
     document.body.classList.add('home-page');
 
     const drops: HTMLElement[] = [];
+    const splashes: HTMLElement[] = [];
+    const droplets: HTMLElement[] = [];
+    const cleanupFns: Array<() => void> = [];
     const styleEl = document.createElement('style');
     document.head.appendChild(styleEl);
 
-    if (rainEl) {
+    const rainTarget = rainEl;
+
+    if (rainTarget) {
+      const setAngle = (angle: number) => {
+        rainTarget.style.setProperty('--angle', `${angle}deg`);
+      };
+
+      setAngle(DEFAULT_ANGLE);
+
+      let rafId: number | null = null;
+      let lastEvent: PointerEvent | null = null;
+
+      const updateAngleFromEvent = () => {
+        if (!lastEvent) return;
+        const rect = rainTarget.getBoundingClientRect();
+        const ratio = Math.min(Math.max((lastEvent.clientX - rect.left) / rect.width, 0), 1);
+        const angle = MAX_ANGLE - (MAX_ANGLE - MIN_ANGLE) * ratio;
+        targetAngle = Number(angle.toFixed(2));
+        setAngle(targetAngle);
+        rafId = null;
+      };
+
+      const handlePointerMove = (event: PointerEvent) => {
+        lastEvent = event;
+        if (rafId === null) {
+          rafId = requestAnimationFrame(updateAngleFromEvent);
+        }
+      };
+
+      const handlePointerLeave = () => {
+        lastEvent = null;
+        targetAngle = DEFAULT_ANGLE;
+        setAngle(targetAngle);
+      };
+
+      let currentPaused = false;
+      let isWindowFocused = document.hasFocus();
+
+      const applyPauseState = () => {
+        const paused = document.visibilityState !== 'visible' || !isWindowFocused;
+        if (paused === currentPaused) return;
+        rainTarget.classList.toggle('rain-paused', paused);
+        splashEl?.classList.toggle('rain-paused', paused);
+        currentPaused = paused;
+      };
+
+      const handlePageHide = () => applyPauseState();
+      const handlePageShow = () => applyPauseState();
+      const handleFocus = () => {
+        isWindowFocused = true;
+        applyPauseState();
+      };
+      const handleBlur = () => {
+        isWindowFocused = false;
+        applyPauseState();
+      };
+
+      rainTarget.addEventListener('pointermove', handlePointerMove);
+      rainTarget.addEventListener('pointerleave', handlePointerLeave);
+      document.addEventListener('visibilitychange', applyPauseState);
+      window.addEventListener('blur', handleBlur);
+      window.addEventListener('focus', handleFocus);
+      window.addEventListener('pagehide', handlePageHide);
+      window.addEventListener('pageshow', handlePageShow);
+
+      applyPauseState();
+
+      cleanupFns.push(() => {
+        rainTarget.removeEventListener('pointermove', handlePointerMove);
+        rainTarget.removeEventListener('pointerleave', handlePointerLeave);
+        document.removeEventListener('visibilitychange', applyPauseState);
+        window.removeEventListener('blur', handleBlur);
+        window.removeEventListener('focus', handleFocus);
+        window.removeEventListener('pagehide', handlePageHide);
+        window.removeEventListener('pageshow', handlePageShow);
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+        }
+      });
+    }
+
+    if (rainTarget) {
+
       for (let i = 0; i < dropCount; i += 1) {
         const drop = document.createElement('div');
         drop.className = 'drop';
@@ -38,14 +129,71 @@
         }`;
 
         styleEl.append(keyframes);
-        rainEl.appendChild(drop);
+        rainTarget.appendChild(drop);
         drops.push(drop);
+
+        const handleIter = () => {
+          drop.style.setProperty('--angle', `${targetAngle}deg`);
+        };
+
+        drop.addEventListener('animationiteration', handleIter);
+        cleanupFns.push(() => drop.removeEventListener('animationiteration', handleIter));
+
+      }
+    }
+
+    const splashTarget = splashEl;
+    if (splashTarget) {
+      for (let i = 0; i < splashCount; i += 1) {
+        const splash = document.createElement('div');
+        splash.className = 'splash';
+
+        const left = Math.floor(Math.random() * 1200) * 0.1;
+        const delay = Math.random() * 2;
+        const duration = 0.4 + Math.random() * 0.4;
+        const scale = 0.8 + Math.random() * 0.6;
+        const glow = 0.4 + Math.random() * 0.4;
+
+        splash.style.left = `${left}vw`;
+        splash.style.setProperty('--splash-delay', `${delay}s`);
+        splash.style.setProperty('--splash-duration', `${duration}s`);
+        splash.style.setProperty('--splash-scale', `${scale}`);
+        splash.style.setProperty('--splash-glow', `${glow}`);
+
+        splashes.push(splash);
+        splashTarget.appendChild(splash);
+
+        if (i % 3 === 0) {
+          const dropletCount = 2 + Math.floor(Math.random() * 3);
+          for (let j = 0; j < dropletCount; j += 1) {
+            const droplet = document.createElement('div');
+            droplet.className = 'splash-droplet';
+
+            const dropletLeft = left + (Math.random() - 0.5) * 2;
+            const bounceHeight = -(10 + Math.random() * 20);
+            const bounceX = (Math.random() - 0.5) * 10;
+            const dropletDelay = delay + Math.random() * 0.1;
+          const dropletDuration = 0.3 + Math.random() * 0.3;
+
+          droplet.style.left = `${dropletLeft}vw`;
+          droplet.style.setProperty('--bounce-height', `${bounceHeight}px`);
+          droplet.style.setProperty('--bounce-x', `${bounceX}px`);
+          droplet.style.animation = `splash-bounce ${dropletDuration}s ${dropletDelay}s ease-out infinite`;
+          droplet.style.opacity = `${0.55 + Math.random() * 0.35}`;
+
+          splashTarget.appendChild(droplet);
+            droplets.push(droplet);
+          }
+        }
       }
     }
 
     return () => {
       document.body.classList.remove('home-page');
       drops.forEach((drop) => drop.remove());
+      splashes.forEach((splash) => splash.remove());
+      droplets.forEach((droplet) => droplet.remove());
+      cleanupFns.forEach((fn) => fn());
       styleEl.remove();
     };
   });
@@ -60,25 +208,18 @@
 </svelte:head>
 
 <section class="hero">
-  <div class="rain" aria-hidden="true" bind:this={rainEl}>
-    <div class="left"></div>
-    <div class="left center"></div>
-    <div class="right center"></div>
-    <div class="right"></div>
-  </div>
+  <div class="rain" aria-hidden="true" bind:this={rainEl}></div>
+  <div class="splash-container" aria-hidden="true" bind:this={splashEl}></div>
 
   <div class="hero-inner container">
     <div class="hero-text">
       <p class="eyebrow">Revelation Land</p>
       <h1>Mohan's notebook for quiet breakthroughs</h1>
       <p class="tagline">
-        Dynamics, study notes, and daily findings recorded in Markdown. Slow down, read with intention,
-        and follow the rain.
+        Revelation Land is a lantern-lit cloister where notes, visions, and daily wonders are set like
+        verses along the path; walk slowly, breathe in the hush, and let each drop be a sign.
       </p>
-      <div class="hero-actions">
-        <a class="primary-link" href="/recent">Recent posts</a>
-        <a class="secondary-link" href="/dynamics">Browse dynamics</a>
-      </div>
+      <p class="motto">“All's Fair in Love and Revelation.”</p>
     </div>
   </div>
 </section>
@@ -86,12 +227,12 @@
 <section class="container intro">
   <div class="intro-text">
     <p>
-      Revelation Land grows entry by entry. Every post includes a clear abstract, detailed body written in
-      Markdown, and an automatically generated table of contents for fast orientation.
+      Revelation Land grows entry by entry—each note a candle, each abstract a verse, every table of contents
+      a starred map leading deeper into the cloister.
     </p>
     <p>
-      Use the navigation above to jump directly to Dynamics, Study Notes, Daily Findings, or the latest
-      posts. Administrators can sign in to publish new insights at any time.
+      Follow the sigils in the navigation to step through Dynamics, Study Notes, Daily Findings, or the most
+      recent testimonies. Administrators tend the shrine at any hour.
     </p>
   </div>
 
@@ -113,7 +254,6 @@
   }
 
   :global(body.home-page) {
-    background: linear-gradient(180deg, #07131c, #305472);
     color: var(--surface-color);
     overflow-x: hidden;
   }
@@ -125,154 +265,107 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    padding: 4rem 0;
+    padding: 5rem 0 6rem;
   }
 
-  .hero::before,
   .hero::after {
-    content: 'CLICK & HOLD TO CREATE LIGHTNING';
-    font-family: Arial, Helvetica, serif;
-    font-size: 12px;
+    content: '';
     position: absolute;
-    width: 100%;
-    text-align: center;
-    bottom: 18px;
-    color: rgba(255, 255, 255, 0.27);
+    inset: 0;
+    /* background-image: linear-gradient(180deg, rgba(3, 5, 11, 0.2), rgba(3, 5, 11, 0.85)); */
+    opacity: 0.9;
     z-index: 0;
-  }
-
-  .hero::before {
-    content: 'HOVER SCREEN TO CHANGE WIND SPEED';
-    top: 18px;
-    bottom: auto;
-  }
-
-  .hero:active::before,
-  .hero:active::after {
-    color: rgba(255, 255, 255, 0);
-    transition: all 0.5s ease 0s;
+    pointer-events: none;
   }
 
   .rain {
     position: absolute;
-    width: 120vw;
+    width: 130vw;
     height: 100%;
-    left: -10vw;
-    cursor: pointer;
-    z-index: 0;
-  }
-
-  .left,
-  .right {
-    width: 20vw;
-    height: 100%;
-    left: 10vw;
-    position: absolute;
-    box-sizing: border-box;
+    left: -15vw;
+    cursor: crosshair;
     z-index: 2;
+    pointer-events: auto;
+    user-select: none;
+    touch-action: none;
+    opacity: 0.8;
+    mix-blend-mode: screen;
+    --angle: 91deg;
   }
 
-  .right {
-    left: initial;
-    right: 10vw;
+  :global(.rain.rain-paused .drop),
+  :global(.rain.rain-paused .drop::before),
+  :global(.rain.rain-paused .drop::after) {
+    animation-play-state: paused;
   }
 
-  .right::after {
-    content: '▲ \A ▼';
-    position: fixed;
-    text-indent: 1px;
-    left: calc(50% - 30px);
-    top: 45px;
-    color: rgba(255, 255, 255, 0.53);
-    font-size: 20px;
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 100%;
-    width: 60px;
-    height: 60px;
-    box-sizing: border-box;
-    padding: 13px 18px;
-    text-align: center;
-    line-height: 15px;
-    transition: all 0.5s ease 0s;
-    white-space: pre-wrap;
+  :global(.splash-container.rain-paused .splash),
+  :global(.splash-container.rain-paused .splash::before),
+  :global(.splash-container.rain-paused .splash::after),
+  :global(.splash-container.rain-paused .splash-droplet) {
+    animation-play-state: paused;
   }
 
-  .right.center {
-    right: 30vw;
+  .splash-container {
+    position: absolute;
+    bottom: 0;
+    left: -15vw;
+    width: 130vw;
+    height: 25vh;
+    pointer-events: none;
+    z-index: 1;
   }
 
-  .right.center::after {
-    display: none;
+  :global(.splash) {
+    position: absolute;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    transform: translateZ(0) scale(var(--splash-scale, 1));
+    opacity: calc(0.4 + var(--splash-glow, 0.5) * 0.4);
+    mix-blend-mode: screen;
   }
 
-  .left.center {
-    left: 30vw;
+  :global(.splash::before),
+  :global(.splash::after) {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(173, 213, 255, 0.35), rgba(173, 213, 255, 0.05));
   }
 
-  .rain::after {
-    content: '↯';
-    position: fixed;
-    left: calc(50% - 30px);
-    bottom: 45px;
-    color: rgba(255, 255, 255, 0.53);
-    font-size: 35px;
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 100%;
-    width: 60px;
-    height: 60px;
-    box-sizing: border-box;
-    padding: 13px 18px;
-    text-align: center;
-    line-height: 30px;
-    transition: all 0.5s ease 0s;
-    white-space: pre-wrap;
+  :global(.splash::before) {
+    width: 100%;
+    height: 100%;
+    animation: splash-ripple1 var(--splash-duration, 0.6s) ease-out infinite;
+    animation-delay: var(--splash-delay, 0s);
   }
 
-  .left:hover ~ :global(.drop) {
-    --angle: 105deg;
+  :global(.splash::after) {
+    width: 100%;
+    height: 100%;
+    animation: splash-ripple2 var(--splash-duration, 0.6s) ease-out infinite;
+    animation-delay: var(--splash-delay, 0s);
   }
 
-  .left:hover ~ .right::after {
-    transform: rotate(22deg);
-    transition: all 0.5s ease 0s;
-  }
-
-  .right:hover::after {
-    transform: rotate(-22deg);
-    transition: all 0.5s ease 0s;
-  }
-
-  .right:hover ~ :global(.drop) {
-    --angle: 75deg;
-  }
-
-  .right.center:hover ~ :global(.drop) {
-    --angle: 85deg;
-  }
-
-  .right.center:hover ~ .right::after {
-    transform: rotate(-12deg);
-    transition: all 0.5s ease 0s;
-  }
-
-  .left.center:hover ~ :global(.drop) {
-    --angle: 95deg;
-  }
-
-  .left.center:hover ~ .right::after {
-    transform: rotate(12deg);
-    transition: all 0.5s ease 0s;
+  :global(.splash-droplet) {
+    position: absolute;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    background: transparent;
+    border-radius: 50%;
+    box-shadow:
+      0 0 4px rgba(173, 213, 255, 0.5),
+      0 0 10px rgba(173, 213, 255, 0.25);
   }
 
   .hero:active .rain {
     cursor: none;
     animation: lightning 0.1s linear 0s 2, lightning 0.15s ease-out 0.25s 1;
-  }
-
-  .hero:active .rain::after,
-  .hero:active .right::after {
-    opacity: 0;
-    transition: all 0.5s ease 0s;
   }
 
   @keyframes lightning {
@@ -283,6 +376,62 @@
           rgba(255, 255, 255, 0) 20%
         ),
         linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
+    }
+  }
+
+  @keyframes splash-ripple1 {
+    0% {
+      width: 4px;
+      height: 4px;
+      opacity: 0.9;
+      transform: translate(-50%, 0) scaleX(1) scaleY(0.8);
+    }
+    50% {
+      width: 20px;
+      height: 10px;
+      opacity: 0.5;
+      transform: translate(-50%, 0) scaleX(1.3) scaleY(0.9);
+    }
+    100% {
+      width: 34px;
+      height: 4px;
+      opacity: 0;
+      transform: translate(-50%, 0) scaleX(1.6) scaleY(0.6);
+    }
+  }
+
+  @keyframes splash-ripple2 {
+    0% {
+      width: 4px;
+      height: 4px;
+      opacity: 0.75;
+      transform: translate(-50%, 0) scale(1);
+    }
+    50% {
+      width: 26px;
+      height: 12px;
+      opacity: 0.4;
+      transform: translate(-50%, 0) scaleX(1.4) scaleY(0.8);
+    }
+    100% {
+      width: 40px;
+      height: 5px;
+      opacity: 0;
+      transform: translate(-50%, 0) scaleX(1.7) scaleY(0.5);
+    }
+  }
+
+  @keyframes splash-bounce {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(var(--bounce-height, -15px)) translateX(var(--bounce-x, 0)) scale(0.4);
+      opacity: 0;
     }
   }
 
@@ -299,11 +448,13 @@
     width: 100%;
     display: flex;
     justify-content: flex-start;
+    align-items: flex-end;
+    gap: 4rem;
   }
 
   .hero-text {
-    max-width: 520px;
-    color: #f8f9fa;
+    max-width: 640px;
+    color: var(--heading-color);
   }
 
   .eyebrow {
@@ -311,14 +462,14 @@
     letter-spacing: 0.32em;
     font-size: 0.78rem;
     color: rgba(233, 236, 239, 0.68);
-    margin-bottom: 0.9rem;
+    margin-bottom: 1.2rem;
   }
 
   h1 {
     margin: 0 0 1.6rem;
-    font-size: 2.6rem;
-    color: #f8f9fa;
-    text-shadow: 0 10px 18px rgba(7, 19, 28, 0.5);
+    font-size: clamp(2.8rem, 6vw, 3.6rem);
+    color: var(--heading-color);
+    text-shadow: 0 15px 35px rgba(3, 5, 11, 0.65);
   }
 
   .tagline {
@@ -327,55 +478,32 @@
     line-height: 1.85;
   }
 
-  .hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.85rem;
-  }
-
-  .primary-link,
-  .secondary-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.55rem 1.3rem;
-    border-radius: 999px;
-    font-weight: 600;
+  .motto {
+    margin: 0 0 1.5rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.34em;
     text-transform: uppercase;
-    font-size: 0.82rem;
-    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.75);
   }
 
-  .primary-link {
-    background: rgba(233, 236, 239, 0.92);
-    color: #212529;
-  }
-
-  .primary-link:hover {
-    background: rgba(233, 236, 239, 1);
-  }
-
-  .secondary-link {
-    background: rgba(233, 236, 239, 0.18);
-    border: 1px solid rgba(233, 236, 239, 0.45);
-    color: rgba(233, 236, 239, 0.92);
-  }
-
-  .secondary-link:hover {
-    background: rgba(233, 236, 239, 0.3);
-  }
 
   .intro {
     display: grid;
-    gap: 2.4rem;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     align-items: start;
-    padding: 3.5rem 0 4rem;
+    padding: 4rem 0 5rem;
+  }
+
+  .intro-text,
+  .intro-links {
+    padding: 0;
   }
 
   .intro-text p {
     color: var(--muted-text);
-    line-height: 1.85;
+    line-height: 2;
+    font-size: 1.05rem;
   }
 
   .intro-links h2 {

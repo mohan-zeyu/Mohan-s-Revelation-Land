@@ -19,7 +19,7 @@ const initialState: AuthState = {
 };
 
 function createAuthStore() {
-  const { subscribe, set, update } = writable<AuthState>(initialState);
+  const { subscribe, set } = writable<AuthState>(initialState);
 
   return {
     subscribe,
@@ -44,17 +44,37 @@ function createAuthStore() {
       });
     },
     checkAuth: async () => {
-      if (!browser) return;
+      if (!browser) return false;
 
       const token = localStorage.getItem('token');
       if (!token) {
         set({ user: null, token: null, isAuthenticated: false });
-        return;
+        return false;
       }
 
-      // Token exists, consider user authenticated
-      // In a real app, you might want to verify the token with the backend
-      update(state => ({ ...state, isAuthenticated: true, token }));
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Invalid token');
+        }
+
+        const user = (await response.json()) as User;
+        set({
+          user,
+          token,
+          isAuthenticated: true
+        });
+        return true;
+      } catch (error) {
+        localStorage.removeItem('token');
+        set({ user: null, token: null, isAuthenticated: false });
+        return false;
+      }
     }
   };
 }

@@ -23,23 +23,28 @@
   <title>Daily Findings - Revelation Land</title>
 </svelte:head>
 
-<div class="container">
-  <header class="page-header">
-    <h1>🔍 Daily Findings</h1>
-    <p class="description">
-      Interesting discoveries and observations from everyday life
+<div class="container page-grid daily-page">
+  <section class="section-hero">
+    <p class="section-kicker">Daily findings</p>
+    <h1>🔍 Everyday sparks</h1>
+    <p class="section-description">
+      Interesting discoveries, tiny experiments, and fleeting curiosities that deserve a home.
     </p>
-  </header>
+  </section>
 
-  <section class="posts-section">
+  <section class="posts-shell">
     {#if loading}
-      <p class="loading">Loading posts...</p>
+      <p class="status-text">Looking around for new curiosities...</p>
     {:else if error}
       <div class="error">{error}</div>
     {:else if posts.length === 0}
-      <p class="no-posts">No daily findings yet. Check back later!</p>
+      <p class="status-text">No findings yet. Watch this space for serendipity.</p>
     {:else}
-      <div class="posts-list">
+      <div class="posts-meta">
+        <span>{posts.length === 1 ? '1 entry' : `${posts.length} entries`}</span>
+        <span>field notes</span>
+      </div>
+      <div class="posts-grid">
         {#each posts as post (post.id)}
           <PostCard {post} />
         {/each}
@@ -49,58 +54,19 @@
 </div>
 
 <style>
-  .page-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding: 2.5rem 0;
-    background: var(--surface-elevated);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
+  .daily-page {
+    padding-top: 4rem;
   }
 
-  .page-header h1 {
-    font-size: 2.75rem;
+  .daily-page .posts-meta span:first-child {
+    background: rgba(247, 201, 121, 0.12);
+    border-color: rgba(247, 201, 121, 0.35);
     color: var(--heading-color);
-    margin-bottom: 0.75rem;
-  }
-
-  .description {
-    font-size: 1.1rem;
-    color: var(--muted-text);
-    margin: 0;
-    max-width: 600px;
-    margin-inline: auto;
-  }
-
-  .posts-section {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .posts-list {
-    display: grid;
-    gap: 1.5rem;
-  }
-
-  .loading,
-  .no-posts {
-    text-align: center;
-    color: var(--muted-text);
-    font-size: 1.1rem;
-    padding: 3rem;
   }
 
   @media (max-width: 768px) {
-    .page-header {
-      padding: 2rem 1.5rem;
-    }
-
-    .page-header h1 {
-      font-size: 2.1rem;
-    }
-
-    .description {
-      font-size: 1rem;
+    .daily-page {
+      padding-top: 2rem;
     }
   }
 </style>

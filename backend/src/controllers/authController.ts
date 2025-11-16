@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { UserModel } from '../models/User';
-import { generateToken } from '../middleware/auth';
+import { AuthRequest, generateToken } from '../middleware/auth';
 
 export const login = (req: Request, res: Response) => {
   try {
@@ -60,6 +60,27 @@ export const register = (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Register error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getCurrentUser = (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const user = UserModel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      id: user.id,
+      username: user.username
+    });
+  } catch (error) {
+    console.error('Get current user error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

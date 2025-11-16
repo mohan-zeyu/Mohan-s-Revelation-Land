@@ -10,6 +10,7 @@
   let error = '';
   let showForm = false;
   let editingPost: Post | null = null;
+  let checkingAuth = true;
 
   // Form fields
   let title = '';
@@ -18,7 +19,10 @@
   let category = 'dynamics';
 
   onMount(async () => {
-    if (!$authStore.isAuthenticated) {
+    const isAuthed = await authStore.checkAuth();
+    checkingAuth = false;
+
+    if (!isAuthed) {
       goto('/login');
       return;
     }
@@ -71,6 +75,10 @@
   }
 
   function handleOverlayKeydown(event: KeyboardEvent) {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       closeForm();
@@ -122,7 +130,12 @@
   <title>Admin Dashboard - Revelation Land</title>
 </svelte:head>
 
-<div class="container">
+{#if checkingAuth}
+  <div class="container auth-loading">
+    <p>Validating session...</p>
+  </div>
+{:else}
+  <div class="container">
   <header class="admin-header">
     <h1>Admin Dashboard</h1>
     <button class="primary" on:click={openNewPostForm}>+ New Post</button>
@@ -233,9 +246,21 @@
       </div>
     {/if}
   </section>
-</div>
+  </div>
+{/if}
 
 <style>
+  .auth-loading {
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-loading p {
+    color: var(--muted-text);
+  }
+
   .admin-header {
     display: flex;
     justify-content: space-between;

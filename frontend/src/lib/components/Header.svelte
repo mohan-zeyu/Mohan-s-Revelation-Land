@@ -49,27 +49,27 @@
 
 <style>
   header {
-    background: rgba(248, 249, 250, 0.9);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-color);
+    background: rgba(3, 8, 18, 0.78);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     position: sticky;
     top: 0;
     z-index: 100;
   }
 
   :global(header .container) {
-    padding: 0 1.25rem;
+    padding: 0.4rem 1.75rem;
   }
 
   nav {
-    min-height: 46px;
+    min-height: 58px;
   }
 
   .nav-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 46px;
+    min-height: 58px;
     gap: 1.25rem;
   }
 
@@ -82,22 +82,22 @@
 
   .logo-title {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.24em;
     color: var(--heading-color);
     text-transform: uppercase;
   }
 
   .divider {
-    font-size: 1.1rem;
-    color: var(--muted-text);
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.35);
   }
 
   .tagline {
-    font-size: 0.8rem;
-    color: var(--muted-text);
-    letter-spacing: 0.18em;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.24em;
     text-transform: uppercase;
   }
 
@@ -110,13 +110,13 @@
   }
 
   .nav-links a {
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     font-weight: 600;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    padding-bottom: 0.15rem;
+    padding-bottom: 0.3rem;
     border-bottom: 2px solid transparent;
-    color: var(--muted-text);
+    color: rgba(255, 255, 255, 0.55);
     transition: border-color 0.2s ease, color 0.2s ease;
   }
 
@@ -130,11 +130,13 @@
   }
 
   .logout-btn {
-    padding: 0.45rem 1.1rem;
-    font-size: 0.85rem;
-    background-color: var(--danger-color);
-    color: var(--surface-color);
+    padding: 0.45rem 1.2rem;
+    font-size: 0.82rem;
+    background: var(--danger-color);
+    color: #04111b;
     border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
   }
 
   .logout-btn:hover {

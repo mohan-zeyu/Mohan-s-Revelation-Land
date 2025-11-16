@@ -30,23 +30,37 @@
 
   main {
     flex: 1;
-    padding: 1rem 0;
+    /* padding: 1rem 0; */
   }
 
   footer {
-    background: rgba(233, 236, 239, 0.7);
-    border-top: 1px solid var(--border-color);
-    padding: 0.75rem 0;
-    margin-top: 2rem;
+    position: relative;
+    padding: 2.5rem 0;
+    margin-top: 4rem;
+    overflow: hidden;
+  }
+
+  footer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(118, 240, 245, 0.2), transparent 55%);
+    opacity: 0.8;
+    pointer-events: none;
   }
 
   :global(footer .container) {
-    padding: 0 1.25rem;
+    padding: 0 1.75rem;
+    text-align: center;
   }
 
   footer p {
-    text-align: center;
-    color: var(--muted-text);
+    position: relative;
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.78);
     margin: 0;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
   }
 </style>

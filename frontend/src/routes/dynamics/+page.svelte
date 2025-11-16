@@ -23,23 +23,29 @@
   <title>Dynamics - Revelation Land</title>
 </svelte:head>
 
-<div class="container">
-  <header class="page-header">
-    <h1>📱 Dynamics</h1>
-    <p class="description">
-      Personal updates and what's happening in my life
+<div class="container page-grid dynamics-page">
+  <section class="section-hero">
+    <p class="section-kicker">Dynamics</p>
+    <h1>📱 Real-time dynamics</h1>
+    <p class="section-description">
+      Personal updates, whispers, and progress logs as they happen. Follow the flow just like the rain on
+      the home page.
     </p>
-  </header>
+  </section>
 
-  <section class="posts-section">
+  <section class="posts-shell">
     {#if loading}
-      <p class="loading">Loading posts...</p>
+      <p class="status-text">Summoning the latest updates...</p>
     {:else if error}
       <div class="error">{error}</div>
     {:else if posts.length === 0}
-      <p class="no-posts">No dynamics posts yet. Check back later!</p>
+      <p class="status-text">No dynamics yet. The next breakthrough is on its way.</p>
     {:else}
-      <div class="posts-list">
+      <div class="posts-meta">
+        <span>{posts.length === 1 ? '1 entry' : `${posts.length} entries`}</span>
+        <span>fresh drops</span>
+      </div>
+      <div class="posts-grid">
         {#each posts as post (post.id)}
           <PostCard {post} />
         {/each}
@@ -49,58 +55,19 @@
 </div>
 
 <style>
-  .page-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding: 2.5rem 0;
-    background: var(--surface-elevated);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
+  .dynamics-page {
+    padding-top: 4rem;
   }
 
-  .page-header h1 {
-    font-size: 2.75rem;
+  .dynamics-page .posts-meta span:first-child {
+    background: rgba(125, 211, 255, 0.12);
+    border-color: rgba(125, 211, 255, 0.4);
     color: var(--heading-color);
-    margin-bottom: 0.75rem;
-  }
-
-  .description {
-    font-size: 1.1rem;
-    color: var(--muted-text);
-    margin: 0;
-    max-width: 600px;
-    margin-inline: auto;
-  }
-
-  .posts-section {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .posts-list {
-    display: grid;
-    gap: 1.5rem;
-  }
-
-  .loading,
-  .no-posts {
-    text-align: center;
-    color: var(--muted-text);
-    font-size: 1.1rem;
-    padding: 3rem;
   }
 
   @media (max-width: 768px) {
-    .page-header {
-      padding: 2rem 1.5rem;
-    }
-
-    .page-header h1 {
-      font-size: 2.1rem;
-    }
-
-    .description {
-      font-size: 1rem;
+    .dynamics-page {
+      padding-top: 2rem;
     }
   }
 </style>

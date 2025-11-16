@@ -23,23 +23,28 @@
   <title>Study Notes - Revelation Land</title>
 </svelte:head>
 
-<div class="container">
-  <header class="page-header">
-    <h1>📚 Study Notes</h1>
-    <p class="description">
-      Learning materials and knowledge I've gathered
+<div class="container page-grid study-page">
+  <section class="section-hero">
+    <p class="section-kicker">Study notes</p>
+    <h1>📚 Curated knowledge drops</h1>
+    <p class="section-description">
+      Reference sheets, research recaps, and distilled lessons collected along the way.
     </p>
-  </header>
+  </section>
 
-  <section class="posts-section">
+  <section class="posts-shell">
     {#if loading}
-      <p class="loading">Loading posts...</p>
+      <p class="status-text">Gathering notebooks...</p>
     {:else if error}
       <div class="error">{error}</div>
     {:else if posts.length === 0}
-      <p class="no-posts">No study notes yet. Check back later!</p>
+      <p class="status-text">No study notes yet. Fresh knowledge is on the horizon.</p>
     {:else}
-      <div class="posts-list">
+      <div class="posts-meta">
+        <span>{posts.length === 1 ? '1 entry' : `${posts.length} entries`}</span>
+        <span>reference deck</span>
+      </div>
+      <div class="posts-grid">
         {#each posts as post (post.id)}
           <PostCard {post} />
         {/each}
@@ -49,58 +54,19 @@
 </div>
 
 <style>
-  .page-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding: 2.5rem 0;
-    background: var(--surface-elevated);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
+  .study-page {
+    padding-top: 4rem;
   }
 
-  .page-header h1 {
-    font-size: 2.75rem;
+  .study-page .posts-meta span:first-child {
+    background: rgba(111, 237, 197, 0.12);
+    border-color: rgba(111, 237, 197, 0.4);
     color: var(--heading-color);
-    margin-bottom: 0.75rem;
-  }
-
-  .description {
-    font-size: 1.1rem;
-    color: var(--muted-text);
-    margin: 0;
-    max-width: 600px;
-    margin-inline: auto;
-  }
-
-  .posts-section {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .posts-list {
-    display: grid;
-    gap: 1.5rem;
-  }
-
-  .loading,
-  .no-posts {
-    text-align: center;
-    color: var(--muted-text);
-    font-size: 1.1rem;
-    padding: 3rem;
   }
 
   @media (max-width: 768px) {
-    .page-header {
-      padding: 2rem 1.5rem;
-    }
-
-    .page-header h1 {
-      font-size: 2.1rem;
-    }
-
-    .description {
-      font-size: 1rem;
+    .study-page {
+      padding-top: 2rem;
     }
   }
 </style>
