@@ -75,5 +75,14 @@ export const api = {
     apiRequest(`/posts/${id}`, {
       method: 'DELETE',
       requiresAuth: true
+    }),
+
+  // Comment endpoints
+  getCommentsForPost: (postId: number) => apiRequest(`/posts/${postId}/comments`),
+
+  createComment: (postId: number, name: string | null, content: string) =>
+    apiRequest(`/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ name, content })
     })
 };

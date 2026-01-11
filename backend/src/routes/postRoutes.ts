@@ -7,6 +7,7 @@ import {
   updatePost,
   deletePost
 } from '../controllers/postController';
+import { getCommentsByPostId, createComment } from '../controllers/commentController';
 import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
@@ -15,6 +16,8 @@ const router = Router();
 router.get('/posts', getAllPosts);
 router.get('/posts/category/:category', getPostsByCategory);
 router.get('/posts/:id', getPostById);
+router.get('/posts/:id/comments', getCommentsByPostId);
+router.post('/posts/:id/comments', createComment);
 
 // Protected routes (admin only)
 router.post('/posts', authMiddleware, createPost);

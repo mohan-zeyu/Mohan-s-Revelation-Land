@@ -1,7 +1,8 @@
 <script lang="ts">
   import { marked } from 'marked';
   import DOMPurify from 'isomorphic-dompurify';
-  import type { Post } from '$lib/types';
+  import { api } from '$lib/api/client';
+  import type { Post, Comment } from '$lib/types';
 
   interface TocItem {
     id: string;
@@ -9,7 +10,7 @@
     level: number;
   }
 
-  export let data: { post: Post };
+  export let data: { post: Post; comments: Comment[] };
 
   const post = data.post;
   const toc: TocItem[] = [];
@@ -19,6 +20,12 @@
     'study-notes': 'Study Notes',
     'daily-findings': 'Daily Findings'
   };
+
+  let comments: Comment[] = data.comments;
+  let commenterName = '';
+  let commentContent = '';
+  let commentError = '';
+  let commentSubmitting = false;
 
   const slugify = (input: string) => {
     const plain = input
@@ -56,7 +63,42 @@
       day: 'numeric'
     });
   }
+
+  function formatDateTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  async function submitComment() {
+    commentError = '';
+    const content = commentContent.trim();
+
+    if (!content) {
+      commentError = 'Please enter a comment.';
+      return;
+    }
+
+    commentSubmitting = true;
+
+    try {
+      const name = commenterName.trim();
+      const comment = (await api.createComment(post.id, name ? name : null, content)) as Comment;
+      comments = [...comments, comment];
+      commentContent = '';
+    } catch (err) {
+      commentError = err instanceof Error ? err.message : 'Failed to submit comment';
+    } finally {
+      commentSubmitting = false;
+    }
+  }
 </script>
+
 
 <svelte:head>
   <title>{post.title} - Revelation Land</title>
@@ -71,6 +113,59 @@
       <p class="abstract">{post.abstract}</p>
     </header>
     <div class="post-content">{@html html}</div>
+
+    <section class="comments" aria-label="Comments">
+      <h2>Comments ({comments.length})</h2>
+
+      <form class="comment-form" on:submit|preventDefault={submitComment}>
+        <div class="form-group">
+          <label for="comment-name">Name (optional)</label>
+          <input
+            id="comment-name"
+            type="text"
+            maxlength="80"
+            placeholder="Leave blank to post anonymously"
+            bind:value={commenterName}
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="comment-content">Your comment</label>
+          <textarea
+            id="comment-content"
+            rows="4"
+            maxlength="2000"
+            placeholder="Share your thoughts..."
+            bind:value={commentContent}
+            required
+          ></textarea>
+        </div>
+
+        {#if commentError}
+          <p class="comment-error">{commentError}</p>
+        {/if}
+
+        <button class="primary" type="submit" disabled={commentSubmitting}>
+          {commentSubmitting ? 'Posting...' : 'Post comment'}
+        </button>
+      </form>
+
+      {#if comments.length === 0}
+        <p class="empty">No comments yet. Be the first to share a thought.</p>
+      {:else}
+        <div class="comment-list">
+          {#each comments as comment (comment.id)}
+            <article class="comment">
+              <div class="comment-meta">
+                <span class="comment-author">{comment.name || 'Anonymous'}</span>
+                <span class="comment-date">{formatDateTime(comment.created_at)}</span>
+              </div>
+              <p class="comment-body">{comment.content}</p>
+            </article>
+          {/each}
+        </div>
+      {/if}
+    </section>
   </article>
 
   <aside class="toc" aria-label="Table of contents">
@@ -176,6 +271,78 @@
     text-decoration: underline;
   }
 
+  .comments {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .comments h2 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.8rem;
+  }
+
+  .comment-form {
+    background: rgba(4, 7, 13, 0.55);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .comment-form .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .comment-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--heading-color);
+    font-weight: 600;
+  }
+
+  .comment-form button {
+    margin-top: 0.5rem;
+  }
+
+  .comment-error {
+    color: var(--danger-color);
+    margin: 0.5rem 0 1rem;
+  }
+
+  .comment-list {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .comment {
+    background: rgba(4, 7, 13, 0.55);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .comment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--muted-text);
+  }
+
+  .comment-author {
+    color: var(--heading-color);
+    font-weight: 600;
+  }
+
+  .comment-body {
+    margin: 0;
+    line-height: 1.65;
+  }
+
   .toc {
     position: sticky;
     top: 6.5rem;
@@ -232,7 +399,79 @@
       grid-template-columns: 1fr;
     }
 
-    .toc {
+    .comments {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .comments h2 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.8rem;
+  }
+
+  .comment-form {
+    background: rgba(4, 7, 13, 0.55);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .comment-form .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .comment-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--heading-color);
+    font-weight: 600;
+  }
+
+  .comment-form button {
+    margin-top: 0.5rem;
+  }
+
+  .comment-error {
+    color: var(--danger-color);
+    margin: 0.5rem 0 1rem;
+  }
+
+  .comment-list {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .comment {
+    background: rgba(4, 7, 13, 0.55);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .comment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--muted-text);
+  }
+
+  .comment-author {
+    color: var(--heading-color);
+    font-weight: 600;
+  }
+
+  .comment-body {
+    margin: 0;
+    line-height: 1.65;
+  }
+
+  .toc {
       position: relative;
       top: auto;
       order: -1;

@@ -9,3 +9,12 @@ export interface Post {
   created_at: string;
   updated_at?: string;
 }
+
+
+export interface Comment {
+  id: number;
+  post_id: number;
+  name?: string | null;
+  content: string;
+  created_at: string;
+}

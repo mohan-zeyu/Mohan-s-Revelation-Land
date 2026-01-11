@@ -41,6 +41,20 @@ export const initDatabase = () => {
     )
   `);
 
+  // Create comments table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id INTEGER NOT NULL,
+      name TEXT,
+      content TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+    )
+  `);
+
+  db.exec('CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id)');
+
   const postColumns = db.prepare("PRAGMA table_info(posts)").all();
   const hasAbstract = postColumns.some((column: any) => column.name === 'abstract');
 
